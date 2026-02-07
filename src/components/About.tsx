@@ -58,21 +58,23 @@ export function About() {
       <div className="relative z-20 container mx-auto px-4 flex justify-center items-center">
         <motion.div
           initial={{ y: 100, opacity: 0, rotate: 5 }}
-          whileInView={{ y: 0, opacity: 1, rotate: -2 }} // Entra tortinho
+          whileInView={{ y: 0, opacity: 1, rotate: 0 }} // Entra tortinho
           transition={{ type: "spring", bounce: 0.5 }}
           viewport={{ once: true, margin: "-100px" }}
-          // Animação contínua de "flutuar" meio trêmulo
-          animate={{ 
-            rotate: [-2, 2, -2],
-            y: [0, -10, 0]
-          }}
-          transition={{ 
-            repeat: Infinity, 
-            duration: 6, 
-            ease: "easeInOut" 
-          }}
-          className="bg-[#fdfbf7] max-w-2xl w-full p-8 md:p-12 rounded-3xl border-[6px] border-black shadow-[15px_15px_0px_0px_#000] relative"
         >
+          <motion.div
+            // Animação contínua de "flutuar" meio trêmulo
+            animate={{ 
+              rotate: [-2, 2, -2],
+              y: [0, -10, 0]
+            }}
+            transition={{ 
+              repeat: Infinity, 
+              duration: 6, 
+              ease: "easeInOut" 
+            }}
+            className="bg-[#fdfbf7] max-w-2xl w-full p-8 md:p-12 rounded-3xl border-[6px] border-black shadow-[15px_15px_0px_0px_#000] relative"
+          >
           
           {/* TACHINHA (Detalhe visual segurando o papel) */}
           <div className="absolute top-[-20px] left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-red-500 border-4 border-black shadow-[2px_2px_0px_0px_#000] z-30"></div>
@@ -124,6 +126,7 @@ export function About() {
             </button>
           </div>
 
+          </motion.div>
         </motion.div>
       </div>
     </section>
