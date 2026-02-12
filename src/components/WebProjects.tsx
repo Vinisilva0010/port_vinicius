@@ -46,8 +46,8 @@ export function WebProjects() {
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   const springConfig = { damping: 50, stiffness: 80 };
-  const rotateXRange = isMobile ? [8, -8] : [10, -10];
-  const rotateYRange = isMobile ? [-12, 12] : [-15, 15];
+  const rotateXRange = isMobile ? [15, -15] : [10, -10]; // Mais rotação no mobile
+  const rotateYRange = isMobile ? [-20, 20] : [-15, 15];
   const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], rotateXRange), springConfig); 
   const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], rotateYRange), springConfig);
   
@@ -88,30 +88,79 @@ export function WebProjects() {
       onMouseMove={handleMouseMove}
       onTouchMove={handleTouchMove}
       className="relative w-full min-h-screen overflow-hidden bg-black flex items-center justify-center border-t-4 sm:border-t-8 border-black py-8 sm:py-0"
-      style={{ perspective: isMobile ? "1000px" : "1500px" }}
+      style={{ perspective: isMobile ? "800px" : "1500px" }}
     >
       <motion.div style={{ rotateX, rotateY, transformStyle: "preserve-3d" }} className="relative w-full h-full min-h-screen origin-center">
         
-        {/* --- CENÁRIO 3D --- */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[100vw] h-[100vh] z-0" style={{ transform: isMobile ? "translateZ(-180vh) scale(2)" : "translateZ(-150vh) scale(1.8)" }}>
+        {/* --- CENÁRIO 3D - MOBILE EXPANDIDO --- */}
+        
+        {/* FUNDO (WALL) - EMPURRADO MUITO PRA TRÁS */}
+        <div 
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[100vw] h-[100vh] z-0" 
+          style={{ transform: isMobile ? "translateZ(-250vh) scale(2.5)" : "translateZ(-150vh) scale(1.8)" }}
+        >
           <Image src="/web/wall3.png" alt="Studio Wall" fill className="object-cover brightness-50" priority />
         </div>
-        <div className="absolute bottom-[-40%] left-[-50%] w-[200%] h-[150vh] origin-bottom z-10" style={{ transform: "rotateX(90deg)" }}>
+
+        {/* CHÃO (FLOOR) - EXPANDIDO */}
+        <div 
+          className="absolute origin-bottom z-10" 
+          style={{ 
+            transform: "rotateX(90deg)",
+            bottom: isMobile ? "-50%" : "-40%",
+            left: isMobile ? "-100%" : "-50%",
+            width: isMobile ? "300%" : "200%",
+            height: isMobile ? "200vh" : "150vh"
+          }}
+        >
           <Image src="/web/floor3.png" alt="Studio Floor" fill className="object-cover brightness-75" />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
         </div>
-        <div className="absolute top-[-41%] left-[-50%] w-[200%] h-[150vh] origin-top z-10" style={{ transform: "rotateX(-90deg)" }}>
+
+        {/* TETO (CEILING) - EXPANDIDO */}
+        <div 
+          className="absolute origin-top z-10" 
+          style={{ 
+            transform: "rotateX(-90deg)",
+            top: isMobile ? "-50%" : "-41%",
+            left: isMobile ? "-100%" : "-50%",
+            width: isMobile ? "300%" : "200%",
+            height: isMobile ? "200vh" : "150vh"
+          }}
+        >
           <Image src="/web/ceiling3.png" alt="Studio Ceiling" fill className="object-cover brightness-50" />
         </div>
-        <div className="absolute top-[-50%] left-[-41%] w-[150vh] h-[200%] origin-left z-10" style={{ transform: "rotateY(90deg)" }}>
+
+        {/* PAREDE ESQUERDA (LEFT) - EXPANDIDA */}
+        <div 
+          className="absolute origin-left z-10" 
+          style={{ 
+            transform: "rotateY(90deg)",
+            top: isMobile ? "-100%" : "-50%",
+            left: isMobile ? "-50%" : "-41%",
+            width: isMobile ? "200vh" : "150vh",
+            height: isMobile ? "300%" : "200%"
+          }}
+        >
           <Image src="/web/left-wall3.png" alt="Studio Left" fill className="object-cover brightness-75" />
         </div>
-        <div className="absolute top-[-50%] right-[-40%] w-[150vh] h-[200%] origin-right z-10" style={{ transform: "rotateY(-90deg)" }}>
+
+        {/* PAREDE DIREITA (RIGHT) - EXPANDIDA */}
+        <div 
+          className="absolute origin-right z-10" 
+          style={{ 
+            transform: "rotateY(-90deg)",
+            top: isMobile ? "-100%" : "-50%",
+            right: isMobile ? "-50%" : "-40%",
+            width: isMobile ? "200vh" : "150vh",
+            height: isMobile ? "300%" : "200%"
+          }}
+        >
           <Image src="/web/right-wall3.png" alt="Studio Right" fill className="object-cover brightness-75" />
         </div>
 
         {/* --- DESCRIÇÃO --- */}
-        <div className="absolute top-4 sm:top-10 w-full flex justify-center z-50 pointer-events-none px-4" style={{ transform: isMobile ? "translateZ(40px)" : "translateZ(100px)" }}>
+        <div className="absolute top-4 sm:top-10 w-full flex justify-center z-50 pointer-events-none px-4" style={{ transform: isMobile ? "translateZ(50px)" : "translateZ(100px)" }}>
             <div className="bg-purple-700 border-3 sm:border-4 border-black p-3 sm:p-4 md:p-6 rounded-xl sm:rounded-2xl shadow-[4px_4px_0px_#000] sm:shadow-[8px_8px_0px_#000] text-center max-w-2xl rotate-[-1deg] w-full sm:w-auto">
                 <h2 className={`text-2xl sm:text-3xl md:text-4xl text-white ${titleFont.className}`}>SOLUÇÕES WEB & 3D</h2>
                 <p className={`text-purple-100 ${handFont.className} text-sm sm:text-lg md:text-xl mt-1 sm:mt-2 leading-tight`}>
@@ -123,7 +172,7 @@ export function WebProjects() {
         {/* --- CONTAINER INTERATIVO --- */}
         <div 
           className="absolute inset-0 flex flex-col items-center justify-center z-[100] gap-6 sm:gap-10 pointer-events-none px-4 pt-32 sm:pt-0" 
-          style={{ transform: isMobile ? "translateZ(30px)" : "translateZ(50px)" }}
+          style={{ transform: isMobile ? "translateZ(40px)" : "translateZ(50px)" }}
         >
             {/* O CARD */}
             <AnimatePresence mode="wait">
