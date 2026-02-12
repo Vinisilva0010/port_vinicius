@@ -19,10 +19,10 @@ export function Hero() {
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
-  // Movimento da câmera com ranges maiores no mobile
+  // Movimento da câmera
   const springConfig = { damping: 20, stiffness: 100 };
-  const rotateXRange = isMobile ? [60, -60] : [20, -20]; // MUITO MAIS rotação
-  const rotateYRange = isMobile ? [-75, 75] : [-20, 20];
+  const rotateXRange = isMobile ? [50, -50] : [20, -20];
+  const rotateYRange = isMobile ? [-60, 60] : [-20, 20];
   
   const rotateX = useSpring(useTransform(mouseY, [-1, 1], rotateXRange), springConfig); 
   const rotateY = useSpring(useTransform(mouseX, [-1, 1], rotateYRange), springConfig);
@@ -67,32 +67,32 @@ export function Hero() {
     const { width, height, left, top } = e.currentTarget.getBoundingClientRect();
     const x = (e.clientX - left) / width - 0.5;
     const y = (e.clientY - top) / height - 0.5;
-    mouseX.set(x * 2); // Multiplicado para mais alcance
+    mouseX.set(x * 2);
     mouseY.set(y * 2);
   };
 
-  // === JOYSTICK VIRTUAL (Bolinhas) ===
+  // === JOYSTICK VIRTUAL ===
   const [joystickActive, setJoystickActive] = useState(false);
   const [joystickPos, setJoystickPos] = useState({ x: 0, y: 0 });
   const joystickRef = useRef<HTMLDivElement>(null);
 
   const handleJoystickStart = (e: React.TouchEvent) => {
+    e.stopPropagation(); // Impede scroll
     setJoystickActive(true);
   };
 
   const handleJoystickMove = (e: React.TouchEvent) => {
     if (!joystickActive || !joystickRef.current) return;
+    e.stopPropagation(); // Impede scroll
     
     const touch = e.touches[0];
     const rect = joystickRef.current.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
     
-    // Calcula distância do centro
     let deltaX = touch.clientX - centerX;
     let deltaY = touch.clientY - centerY;
     
-    // Limita ao raio do joystick
     const maxRadius = rect.width / 2;
     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
     
@@ -101,7 +101,6 @@ export function Hero() {
       deltaY = (deltaY / distance) * maxRadius;
     }
     
-    // Normaliza para -1 a 1
     const normalizedX = deltaX / maxRadius;
     const normalizedY = deltaY / maxRadius;
     
@@ -110,10 +109,10 @@ export function Hero() {
     mouseY.set(normalizedY);
   };
 
-  const handleJoystickEnd = () => {
+  const handleJoystickEnd = (e: React.TouchEvent) => {
+    e.stopPropagation();
     setJoystickActive(false);
     setJoystickPos({ x: 0, y: 0 });
-    // Volta suave pro centro
     mouseX.set(0);
     mouseY.set(0);
   };
@@ -121,8 +120,8 @@ export function Hero() {
   return (
     <section 
       onMouseMove={handleMouseMove}
-      className="relative w-full h-screen overflow-hidden bg-black flex items-center justify-center touch-none"
-      style={{ perspective: isMobile ? "500px" : "1000px" }}
+      className="relative w-full h-screen overflow-hidden bg-black flex items-center justify-center"
+      style={{ perspective: isMobile ? "800px" : "1000px" }}
     >
       
       {/* Botão Giroscópio */}
@@ -146,16 +145,15 @@ export function Hero() {
         </button>
       )}
 
-      {/* === JOYSTICK VIRTUAL (só mobile) === */}
+      {/* === JOYSTICK VIRTUAL === */}
       {isMobile && !useGyroscope && (
         <div
           ref={joystickRef}
           onTouchStart={handleJoystickStart}
           onTouchMove={handleJoystickMove}
           onTouchEnd={handleJoystickEnd}
-          className="absolute bottom-8 left-8 z-[100] w-32 h-32 rounded-full bg-white/10 backdrop-blur-md border-2 border-white/30 flex items-center justify-center shadow-2xl"
+          className="absolute bottom-8 left-8 z-[100] w-32 h-32 rounded-full bg-white/10 backdrop-blur-md border-2 border-white/30 flex items-center justify-center shadow-2xl touch-none"
         >
-          {/* Bolinha interna que se move */}
           <motion.div
             animate={{
               x: joystickPos.x,
@@ -177,56 +175,56 @@ export function Hero() {
         className="relative w-full h-full origin-center"
       >
         
-        {/* === 1. FUNDO (WALL) === */}
+        {/* === 1. FUNDO (WALL) - EMPURRADO PRA TRÁS === */}
         <div 
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[250vw] md:w-[200vw] h-[200vh] md:h-[150vh] z-0"
-          style={{ transform: isMobile ? "translateZ(-50vh) scale(2.5)" : "translateZ(-150vh) scale(2)" }} 
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200vw] h-[150vh] z-0"
+          style={{ transform: isMobile ? "translateZ(-200vh) scale(2.2)" : "translateZ(-150vh) scale(2)" }} 
         >
           <Image src="/hero/wall.png" alt="Fundo" fill className="object-cover brightness-75" priority />
         </div>
 
-        {/* === 2. CHÃO (FLOOR) === */}
+        {/* === 2. CHÃO (FLOOR) - EXPANDIDO === */}
         <div 
-          className="absolute bottom-[-50%] md:bottom-[-30%] left-[-100%] md:left-[-50%] w-[300%] md:w-[200%] h-[200vh] md:h-[150vh] origin-bottom z-10"
+          className="absolute bottom-[-30%] left-[-50%] w-[200%] h-[150vh] origin-bottom z-10"
           style={{ transform: "rotateX(90deg)" }}
         >
           <Image src="/hero/floor.png" alt="Chão" fill className="object-cover brightness-90" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent" />
         </div>
 
-        {/* === 3. TETO (CEILING) === */}
+        {/* === 3. TETO (CEILING) - EXPANDIDO === */}
         <div 
-          className="absolute top-[-50%] md:top-[-30%] left-[-100%] md:left-[-60%] w-[300%] md:w-[200%] h-[200vh] md:h-[150vh] origin-top z-10"
+          className="absolute top-[-30%] left-[-60%] w-[200%] h-[150vh] origin-top z-10"
           style={{ transform: "rotateX(-90deg)" }}
         >
           <Image src="/hero/ceiling.png" alt="Teto" fill className="object-cover brightness-75" />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-transparent to-transparent" />
         </div>
 
-        {/* === 4. PAREDE ESQUERDA (LEFT WALL) === */}
+        {/* === 4. PAREDE ESQUERDA - MUITO MAIS LARGA === */}
         <div 
-          className="absolute top-[-100%] md:top-[-50%] left-[-50%] w-[200vh] md:w-[150vh] h-[300%] md:h-[200%] origin-left z-10"
+          className="absolute top-[-50%] left-[-50%] w-[150vh] h-[200%] origin-left z-10"
           style={{ transform: "rotateY(90deg)" }}
         >
           <Image src="/hero/left-wall.png" alt="Esquerda" fill className="object-cover brightness-75" />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-transparent to-transparent" />
         </div>
 
-        {/* === 5. PAREDE DIREITA (RIGHT WALL) === */}
+        {/* === 5. PAREDE DIREITA - MUITO MAIS LARGA === */}
         <div 
-          className="absolute top-[-100%] md:top-[-50%] right-[-50%] w-[200vh] md:w-[150vh] h-[300%] md:h-[200%] origin-right z-10"
+          className="absolute top-[-50%] right-[-50%] w-[150vh] h-[200%] origin-right z-10"
           style={{ transform: "rotateY(-90deg)" }}
         >
           <Image src="/hero/right-wall.png" alt="Direita" fill className="object-cover brightness-75" />
-          <div className="absolute inset-0 bg-gradient-to-l from-black/70 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-l from-black/90 via-transparent to-transparent" />
         </div>
 
-        {/* === 6. OBJETOS (MÓVEIS) === */}
+        {/* === 6. OBJETOS === */}
         
         {/* Mesa Gamer */}
         <div 
           className="absolute bottom-0 left-[6%] w-[55vw] md:w-[50vw] h-[80vh] md:h-[100vh] z-20 pointer-events-none"
-          style={{ transform: isMobile ? "translateZ(-100px) rotateY(8deg)" : "translateZ(-200px) rotateY(10deg)" }}
+          style={{ transform: isMobile ? "translateZ(-120px) rotateY(8deg)" : "translateZ(-200px) rotateY(10deg)" }}
         >
           <Image src="/hero/de.png" alt="Mesa" fill className="object-contain object-bottom" />
         </div>
@@ -234,7 +232,7 @@ export function Hero() {
         {/* Estante */}
         <div 
           className="absolute bottom-0 right-[5%] md:right-[10%] w-[35vw] md:w-[30vw] h-[60vh] md:h-[70vh] z-20 pointer-events-none"
-          style={{ transform: isMobile ? "translateZ(-60px) rotateY(-8deg)" : "translateZ(-100px) rotateY(-10deg)" }}
+          style={{ transform: isMobile ? "translateZ(-70px) rotateY(-8deg)" : "translateZ(-100px) rotateY(-10deg)" }}
         >
           <Image src="/hero/sh1.png" alt="Estante" fill className="object-contain object-bottom" />
         </div>
@@ -242,7 +240,7 @@ export function Hero() {
         {/* === 7. TEXTO E UI === */}
         <div 
           className="absolute inset-0 flex items-center justify-center z-50 pointer-events-none px-4"
-          style={{ transform: isMobile ? "translateZ(30px)" : "translateZ(100px)" }}
+          style={{ transform: isMobile ? "translateZ(40px)" : "translateZ(100px)" }}
         >
           <div className="text-center pointer-events-auto p-6 sm:p-10 bg-black/40 backdrop-blur-sm rounded-2xl sm:rounded-3xl border border-white/20 shadow-2xl max-w-[90vw] sm:max-w-none">
             <h1 className="text-4xl sm:text-7xl md:text-9xl font-black text-white drop-shadow-xl tracking-tighter leading-tight">
@@ -262,7 +260,7 @@ export function Hero() {
 
       {/* Instruções */}
       {isMobile && (
-        <div className="absolute bottom-4 right-4 z-[100] text-white/70 text-[10px] text-right bg-black/30 backdrop-blur-sm px-3 py-2 rounded-lg">
+        <div className="absolute bottom-4 right-4 z-[100] text-white/70 text-[10px] text-right bg-black/30 backdrop-blur-sm px-3 py-2 rounded-lg pointer-events-none">
           {useGyroscope ? "📱 Movimente o celular" : "🕹️ Use o joystick"}
         </div>
       )}
