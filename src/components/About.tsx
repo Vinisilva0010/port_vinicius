@@ -83,7 +83,7 @@ export function About() {
           <div className="flex justify-center mb-8">
             <div className="relative w-64 h-24 md:w-80 md:h-32 transform -rotate-2 hover:rotate-2 transition-transform">
               <Image 
-                src="/about/title-sobre.png" 
+                src="/about/titulo-sobre.png" 
                 alt="Sobre Mim" 
                 fill 
                 className="object-contain" 
