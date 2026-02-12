@@ -1,11 +1,16 @@
 "use client";
 
-import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { motion, useMotionValue, useSpring, useTransform, useAnimation } from "framer-motion";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
 export function Hero() {
   const [isMobile, setIsMobile] = useState(false);
+  const [useGyroscope, setUseGyroscope] = useState(false);
+
+  // Valores base para rotação (acumulados)
+  const [baseRotationX, setBaseRotationX] = useState(0);
+  const [baseRotationY, setBaseRotationY] = useState(0);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -18,15 +23,54 @@ export function Hero() {
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
-  // Movimento da cabeça (Câmera) - Reduzido no mobile
-  const springConfig = { damping: 30, stiffness: 100 };
-  const rotateXRange = isMobile ? [10, -10] : [20, -20];
-  const rotateYRange = isMobile ? [-10, 10] : [-20, 20];
+  // Movimento da cabeça (Câmera)
+  const springConfig = { damping: 25, stiffness: 150 };
+  const rotateXRange = isMobile ? [45, -45] : [20, -20]; // AUMENTADO para mobile ver 360°
+  const rotateYRange = isMobile ? [-45, 45] : [-20, 20];
   
   const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], rotateXRange), springConfig); 
   const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], rotateYRange), springConfig);
 
+  // === GYROSCOPE (Giroscópio do celular) ===
+  useEffect(() => {
+    if (!isMobile) return;
+
+    const handleOrientation = (event: DeviceOrientationEvent) => {
+      if (!useGyroscope) return;
+      
+      const beta = event.beta || 0; // Inclinação frente/trás (-180 a 180)
+      const gamma = event.gamma || 0; // Inclinação esquerda/direita (-90 a 90)
+
+      // Normaliza e inverte para ficar natural
+      const x = Math.max(-0.5, Math.min(0.5, gamma / 90 * 0.5));
+      const y = Math.max(-0.5, Math.min(0.5, (beta - 90) / 90 * 0.5));
+
+      mouseX.set(x);
+      mouseY.set(y);
+    };
+
+    // Pede permissão no iOS 13+
+    if (typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
+      (DeviceOrientationEvent as any).requestPermission()
+        .then((permissionState: string) => {
+          if (permissionState === 'granted') {
+            setUseGyroscope(true);
+            window.addEventListener('deviceorientation', handleOrientation);
+          }
+        });
+    } else {
+      // Android ou iOS antigo
+      setUseGyroscope(true);
+      window.addEventListener('deviceorientation', handleOrientation);
+    }
+
+    return () => {
+      window.removeEventListener('deviceorientation', handleOrientation);
+    };
+  }, [isMobile, useGyroscope, mouseX, mouseY]);
+
   const handleMouseMove = (e: React.MouseEvent) => {
+    if (isMobile) return; // No mobile usa swipe
     const { width, height, left, top } = e.currentTarget.getBoundingClientRect();
     const x = (e.clientX - left) / width - 0.5;
     const y = (e.clientY - top) / height - 0.5;
@@ -34,25 +78,67 @@ export function Hero() {
     mouseY.set(y);
   };
 
-  // Touch support para mobile
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isMobile) return;
+  // === SWIPE/DRAG (Arrastar para girar) ===
+  const [isDragging, setIsDragging] = useState(false);
+  const [startPos, setStartPos] = useState({ x: 0, y: 0 });
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (useGyroscope) return; // Se tá usando giroscópio, não usa swipe
+    setIsDragging(true);
     const touch = e.touches[0];
-    const { width, height, left, top } = e.currentTarget.getBoundingClientRect();
-    const x = (touch.clientX - left) / width - 0.5;
-    const y = (touch.clientY - top) / height - 0.5;
-    mouseX.set(x);
-    mouseY.set(y);
+    setStartPos({ x: touch.clientX, y: touch.clientY });
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging || useGyroscope) return;
+    
+    const touch = e.touches[0];
+    const deltaX = (touch.clientX - startPos.x) / window.innerWidth;
+    const deltaY = (touch.clientY - startPos.y) / window.innerHeight;
+
+    // Acumula a rotação
+    const newX = Math.max(-0.5, Math.min(0.5, deltaX));
+    const newY = Math.max(-0.5, Math.min(0.5, deltaY));
+
+    mouseX.set(newX);
+    mouseY.set(newY);
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
   };
 
   return (
     <section 
       onMouseMove={handleMouseMove}
+      onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
       className="relative w-full h-screen overflow-hidden bg-black flex items-center justify-center"
-      style={{ perspective: isMobile ? "800px" : "1000px" }}
+      style={{ perspective: isMobile ? "600px" : "1000px" }} // Perspective menor = mais dramático
     >
       
+      {/* Botão para ativar Giroscópio (iOS precisa) */}
+      {isMobile && !useGyroscope && (
+        <button
+          onClick={() => {
+            if (typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
+              (DeviceOrientationEvent as any).requestPermission()
+                .then((permissionState: string) => {
+                  if (permissionState === 'granted') {
+                    setUseGyroscope(true);
+                  }
+                });
+            } else {
+              setUseGyroscope(true);
+            }
+          }}
+          className="absolute top-4 right-4 z-[100] px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-bold shadow-lg"
+        >
+          🎯 Ativar Giroscópio
+        </button>
+      )}
+
       {/* O QUARTO (Onde a mágica acontece) */}
       <motion.div 
         style={{ 
@@ -66,7 +152,7 @@ export function Hero() {
         {/* === 1. FUNDO (WALL) === */}
         <div 
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200vw] h-[150vh] z-0"
-          style={{ transform: isMobile ? "translateZ(-100vh) scale(1.8)" : "translateZ(-150vh) scale(2)" }} 
+          style={{ transform: isMobile ? "translateZ(-80vh) scale(1.8)" : "translateZ(-150vh) scale(2)" }} 
         >
           <Image src="/hero/wall.png" alt="Fundo" fill className="object-cover brightness-75" priority />
         </div>
@@ -109,7 +195,7 @@ export function Hero() {
 
         {/* === 6. OBJETOS (MÓVEIS) === */}
         
-        {/* Mesa Gamer (Esquerda) - Ajustada para mobile */}
+        {/* Mesa Gamer (Esquerda) */}
         <div 
           className="absolute bottom-0 left-[6%] md:left-[6%] w-[55vw] md:w-[50vw] h-[80vh] md:h-[100vh] z-20 pointer-events-none"
           style={{ transform: isMobile ? "translateZ(-150px) rotateY(8deg)" : "translateZ(-200px) rotateY(10deg)" }}
@@ -117,7 +203,7 @@ export function Hero() {
           <Image src="/hero/de.png" alt="Mesa" fill className="object-contain object-bottom" />
         </div>
 
-        {/* Estante (Direita) - Ajustada para mobile */}
+        {/* Estante (Direita) */}
         <div 
           className="absolute bottom-0 right-[5%] md:right-[10%] w-[35vw] md:w-[30vw] h-[60vh] md:h-[70vh] z-20 pointer-events-none"
           style={{ transform: isMobile ? "translateZ(-80px) rotateY(-8deg)" : "translateZ(-100px) rotateY(-10deg)" }}
@@ -145,6 +231,13 @@ export function Hero() {
         </div>
 
       </motion.div>
+
+      {/* Instruções de uso */}
+      {isMobile && (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[100] text-white/60 text-xs text-center px-4">
+          {useGyroscope ? "📱 Movimente o celular para explorar" : "👆 Arraste para olhar ao redor"}
+        </div>
+      )}
     </section>
   );
 }
