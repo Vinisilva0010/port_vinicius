@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Permanent_Marker, Creepster } from "next/font/google";
 import { BrainCircuit, Cog, Bitcoin, BookOpen } from "lucide-react";
@@ -36,6 +37,7 @@ const blogTopics = [
 
 export function BlogSection() {
   const [isMobile, setIsMobile] = useState(false);
+  const router = useRouter();
   const sectionRef = useRef(null);
   const isInView = useInView(sectionRef, { amount: 0.3 });
   
@@ -235,6 +237,7 @@ export function BlogSection() {
 
         {/* Botão */}
         <motion.button
+            onClick={() => router.push("/blog")}
             whileHover={{ scale: 1.1, backgroundColor: "#991b1b" }}
             whileTap={{ scale: 0.9 }}
             className={`px-6 sm:px-10 md:px-12 py-3 sm:py-4 md:py-5 bg-red-700 hover:bg-red-800 active:bg-red-900 text-white text-base sm:text-xl md:text-2xl border-3 sm:border-4 border-black shadow-[4px_4px_0px_#000] sm:shadow-[6px_6px_0px_#000] md:shadow-[8px_8px_0px_#000] rounded-lg sm:rounded-xl flex items-center gap-2 sm:gap-3 mx-auto ${markerFont.className}`}
