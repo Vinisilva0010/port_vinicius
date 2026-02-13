@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+@theme {
+  /* Fontes */
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-mono);
+
+  /* Cores Cyberpunk / Tech */
+  --color-background: #050505;
+  --color-foreground: #ffffff;
+  
+  --color-primary: #00ff9d; /* Verde Neon */
+  --color-secondary: #bd00ff; /* Roxo Neon */
+  --color-muted: #1a1a1a;
+}
+
+/* Reset Básico */
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+}
+
+/* Utilitários Extras */
+.text-glow {
+  text-shadow: 0 0 20px var(--color-primary);
+}
+
+
+@keyframes jitter {
+  0% { transform: translate(0, 0) skew(0deg); }
+  20% { transform: translate(-2px, 1px) skew(1deg); }
+  40% { transform: translate(2px, -1px) skew(-1deg); }
+  60% { transform: translate(-1px, 2px) skew(0deg); }
+  80% { transform: translate(1px, -2px) skew(1deg); }
+  100% { transform: translate(0, 0) skew(0deg); }
+}
+
+.animate-jitter {
+  animation: jitter 0.4s infinite linear;
+}
+
+/* Efeito de Ruído (Noise) */
+.bg-noise {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.15'/%3E%3C/svg%3E");
+}
+
+/* Efeito de Scanlines (Linhas de TV) */
+.scanlines {
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 2px,
+    rgba(0, 0, 0, 0.2) 3px,
+    rgba(0, 0, 0, 0.2) 4px
+  );
+  pointer-events: none;
+}
+
+/* Efeito de Aberração Cromática (Separar cores) */
+.chromatic-aberration {
+  text-shadow: 
+    2px 0px 1px rgba(255,0,0,0.6),
+    -2px 0px 1px rgba(0,0,255,0.6);
+}

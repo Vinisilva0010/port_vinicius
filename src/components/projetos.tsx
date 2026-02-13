@@ -100,11 +100,17 @@ export function Projetos() {
   const [showSatoshi, setShowSatoshi] = useState(false);
   const [satoshiCorner, setSatoshiCorner] = useState(0);
 
-  const nextProject = () => setCurrIndex((prev) => (prev + 1) % projects.length);
-  const prevProject = () =>
-    setCurrIndex((prev) => (prev - 1 + projects.length) % projects.length);
+  const nextProject = () => {
+    setShowDetails(false);
+    setCurrIndex((prev) => (prev + 1) % projects.length);
+  };
 
-  // autoplay dos cards (ok, bem leve)
+  const prevProject = () => {
+    setShowDetails(false);
+    setCurrIndex((prev) => (prev - 1 + projects.length) % projects.length);
+  };
+
+  // autoplay
   useEffect(() => {
     if (!isAutoPlaying) return;
     const timer = setInterval(() => {
@@ -113,9 +119,9 @@ export function Projetos() {
     return () => clearInterval(timer);
   }, [isAutoPlaying, showDetails]);
 
-  // satoshi random (desligado no mobile)
+  // satoshi random – só desktop
   useEffect(() => {
-    if (isMobile) return; // não roda no celular
+    if (isMobile) return;
 
     const triggerSatoshi = () => {
       setSatoshiCorner(Math.floor(Math.random() * 4));
@@ -128,7 +134,7 @@ export function Projetos() {
     return () => clearTimeout(initialTimer);
   }, [isMobile]);
 
-  // mouse desktop
+  // mouse desktop (tilt suave)
   const handleMouseMove = (e: React.MouseEvent) => {
     if (isMobile) return;
     const { width, height, left, top } = e.currentTarget.getBoundingClientRect();
@@ -138,21 +144,9 @@ export function Projetos() {
     mouseY.set(y);
   };
 
-  // touch mobile – tilt manual, sem 360 automático
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isMobile) return;
-    const touch = e.touches[0];
-    const { width, height, left, top } = e.currentTarget.getBoundingClientRect();
-    const x = (touch.clientX - left) / width - 0.5;
-    const y = (touch.clientY - top) / height - 0.5;
-    mouseX.set(x);
-    mouseY.set(y);
-  };
-
   return (
     <section
       onMouseMove={handleMouseMove}
-      onTouchMove={handleTouchMove}
       className="relative w-full h-screen md:min-h-screen overflow-hidden bg-black flex items-center justify-center border-t-8 border-black"
       style={{ perspective: isMobile ? "900px" : "1000px" }}
     >
@@ -328,146 +322,195 @@ export function Projetos() {
           </div>
         </div>
 
-        {/* CARROSSEL */}
+        {/* CARROSSEL (botões e card totalmente clicáveis) */}
         <div
           className="absolute inset-0 flex items-center justify-center z-40"
           style={{ transform: "translateZ(-80px)" }}
         >
-          {/* Setas */}
-          <div className="w-full max-w-6xl px-2 md:px-4 flex justify-between items-center absolute z-50 pointer-events-none">
-            <button
-              onClick={prevProject}
-              className="pointer-events-auto p-2 md:p-4 bg-orange-600 rounded-full border-2 md:border-4 border-black shadow-[2px_2px_0px_black] hover:scale-110 transition-transform text-white"
-            >
-              <MoveLeft size={20} className="md:w-8 md:h-8" strokeWidth={3} />
-            </button>
-            <button
-              onClick={nextProject}
-              className="pointer-events-auto p-2 md:p-4 bg-orange-600 rounded-full border-2 md:border-4 border-black shadow-[2px_2px_0px_black] hover:scale-110 transition-transform text-white"
-            >
-              <MoveRight size={20} className="md:w-8 md:h-8" strokeWidth={3} />
-            </button>
-          </div>
-
-          {/* CARD */}
-          <div className="w-[90vw] h-[60vh] md:w-[500px] md:h-[650px] relative perspective-1000">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={projects[currIndex].id}
-                initial={{ scale: 0, opacity: 0, rotate: -8 }}
-                animate={{ scale: 1, opacity: 1, rotate: 0 }}
-                exit={{ scale: 0, opacity: 0, rotate: 8 }}
-                transition={{
-                  type: "spring",
-                  stiffness: isMobile ? 140 : 200,
-                  damping: isMobile ? 24 : 20,
-                }}
-                className="w-full h-full bg-[#1a1a1a] border-[4px] md:border-[6px] border-black rounded-3xl overflow-hidden shadow-[10px_10px_0px_rgba(0,0,0,0.8)] md:shadow-[20px_20px_0px_rgba(0,0,0,0.8)] relative flex flex-col pointer-events-auto group"
-                onMouseEnter={() => setIsAutoPlaying(false)}
-                onMouseLeave={() => setIsAutoPlaying(true)}
+          <div className="relative w-full h-full flex items-center justify-center">
+            {/* Setas */}
+            <div className="w-full max-w-6xl px-2 md:px-4 flex justify-between items-center absolute z-50">
+              <button
+                type="button"
+                onClick={prevProject}
+                className="p-2 md:p-4 bg-orange-600 rounded-full border-2 md:border-4 border-black shadow-[2px_2px_0px_black] hover:scale-110 transition-transform text-white"
               >
-                <AnimatePresence>
-                  {showDetails && (
-                    <motion.div
-                      initial={{ y: "100%" }}
-                      animate={{ y: 0 }}
-                      exit={{ y: "100%" }}
-                      transition={{ duration: 0.25 }}
-                      className="absolute inset-0 z-50 bg-[#fff9c4] p-6 md:p-8 border-t-8 border-black flex flex-col"
-                      style={{
-                        backgroundImage:
-                          "linear-gradient(#aad4ff 1px, transparent 1px)",
-                        backgroundSize: "100% 1.5rem",
-                      }}
-                    >
-                      <div className="absolute left-6 md:left-8 top-0 bottom-0 w-[2px] bg-red-400 opacity-40" />
-                      <div className="flex justify-between items-start mb-4 pl-4 md:pl-6 relative z-10">
-                        <h4
-                          className={`text-xl md:text-2xl text-black underline ${titleFont.className}`}
-                        >
-                          CONFIDENCIAL:
-                        </h4>
-                        <button
-                          onClick={() => setShowDetails(false)}
-                          className="p-1 md:p-2 bg-red-600 text-white border-2 border-black rounded-full"
-                        >
-                          <X size={16} />
-                        </button>
-                      </div>
-                      <div className="pl-4 md:pl-6 relative z-10 overflow-y-auto custom-scrollbar h-full">
-                        <p
-                          className={`text-gray-800 text-lg md:text-xl leading-[1.5rem] ${handFont.className}`}
-                        >
-                          {projects[currIndex].details}
-                        </p>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                <MoveLeft size={20} className="md:w-8 md:h-8" strokeWidth={3} />
+              </button>
+              <button
+                type="button"
+                onClick={nextProject}
+                className="p-2 md:p-4 bg-orange-600 rounded-full border-2 md:border-4 border-black shadow-[2px_2px_0px_black] hover:scale-110 transition-transform text-white"
+              >
+                <MoveRight size={20} className="md:w-8 md:h-8" strokeWidth={3} />
+              </button>
+            </div>
 
-                {/* Imagem */}
-                <div className="h-[40%] md:h-[45%] w-full bg-gray-800 relative border-b-[4px] md:border-b-[6px] border-black">
-                  <div className="absolute inset-0 flex items-center justify-center bg-orange-900/20">
-                    <Cpu size={60} className="text-orange-500/30" />
-                  </div>
-                  <Image
-                    src={projects[currIndex].image}
-                    alt="Project Image"
-                    fill
-                    className="object-cover opacity-80"
-                  />
-                  <div className="absolute top-2 right-2 md:top-4 md:right-4 bg-yellow-400 border-2 md:border-4 border-black px-2 py-1 text-black font-black text-xs transform rotate-3 z-10">
-                    v1.0.0
-                  </div>
-                </div>
-
-                {/* Conteúdo */}
-                <div className="flex-1 p-4 md:p-8 flex flex-col bg-[#222]">
-                  <div className="flex items-center gap-2 mb-2 md:mb-4">
-                    <Terminal className="text-orange-500" size={20} />
-                    <h3
-                      className={`text-xl md:text-3xl text-white ${titleFont.className}`}
-                    >
-                      {projects[currIndex].title}
-                    </h3>
-                  </div>
-
-                  <p
-                    className={`text-gray-400 text-xs md:text-sm leading-relaxed mb-4 flex-1 ${codeFont.className}`}
-                  >
-                    {projects[currIndex].desc}
-                  </p>
-
-                  <div className="flex flex-wrap gap-1 md:gap-2 mb-4">
-                    {projects[currIndex].techs.map((t) => (
-                      <span
-                        key={t}
-                        className="px-2 py-1 bg-orange-500/20 border border-orange-500 text-orange-400 text-[10px] md:text-xs font-bold rounded"
+            {/* CARD */}
+            <div className="w-[90vw] h-[60vh] md:w-[500px] md:h-[650px] relative perspective-1000 flex items-center justify-center">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={projects[currIndex].id}
+                  initial={{ scale: 0, opacity: 0, rotate: -8 }}
+                  animate={{ scale: 1, opacity: 1, rotate: 0 }}
+                  exit={{ scale: 0, opacity: 0, rotate: 8 }}
+                  transition={{
+                    type: "spring",
+                    stiffness: isMobile ? 140 : 200,
+                    damping: isMobile ? 24 : 20,
+                  }}
+                  className="w-full h-full bg-[#1a1a1a] border-[4px] md:border-[6px] border-black rounded-3xl overflow-hidden shadow-[10px_10px_0px_rgba(0,0,0,0.8)] md:shadow-[20px_20px_0px_rgba(0,0,0,0.8)] relative flex flex-col group"
+                  onMouseEnter={() => setIsAutoPlaying(false)}
+                  onMouseLeave={() => setIsAutoPlaying(true)}
+                >
+                  {/* FOLHA */}
+                  <AnimatePresence>
+                    {showDetails && (
+                      <motion.div
+                        initial={{ y: "100%", rotate: 3, opacity: 0 }}
+                        animate={{ y: 0, rotate: 0, opacity: 1 }}
+                        exit={{ y: "100%", rotate: -3, opacity: 0 }}
+                        transition={{ duration: 0.25 }}
+                        className="absolute inset-0 z-50 flex items-stretch justify-center"
                       >
-                        {t}
-                      </span>
-                    ))}
+                        <div
+                          className="
+                            relative w-[92%] h-[92%] mt-3
+                            bg-[#fff6c7]
+                            border-[3px] md:border-[4px] border-black
+                            rounded-2xl md:rounded-3xl
+                            shadow-[6px_6px_0px_#000]
+                            overflow-hidden
+                          "
+                          style={{
+                            backgroundImage: `
+                              linear-gradient(#ead7a0 1px, transparent 1px),
+                              radial-gradient(circle at 10px 10px, #ffeb99 0, #ffeb99 4px, transparent 4px)
+                            `,
+                            backgroundSize: "100% 1.6rem, 40px 40px",
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <div className="absolute left-6 md:left-8 top-0 bottom-0 w-[3px] bg-red-400/60" />
+                          <div className="absolute top-2 left-10 w-6 h-1 bg-black/70 rotate-[-8deg]" />
+                          <div className="absolute top-3 right-10 w-6 h-1 bg-black/70 rotate-[7deg]" />
+
+                          <div className="relative z-10 flex justify-between items-start px-6 md:px-8 pt-4 md:pt-5 pb-2">
+                            <div>
+                              <p className="text-[10px] md:text-xs text-black/70 font-black tracking-tight">
+                                FICHA DO PROJETO:
+                              </p>
+                              <h4
+                                className={`text-xl md:text-2xl text-black ${titleFont.className}`}
+                              >
+                                {projects[currIndex].title}
+                              </h4>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setShowDetails(false);
+                              }}
+                              className="
+                                ml-2 p-1.5 md:p-2
+                                bg-red-500 hover:bg-red-600 active:bg-red-700
+                                text-white border-[2px] border-black
+                                rounded-full shadow-[3px_3px_0px_#000]
+                                text-xs md:text-sm font-black
+                              "
+                            >
+                              <X size={14} className="md:w-4 md:h-4" />
+                            </button>
+                          </div>
+
+                          <div className="relative z-10 px-6 md:px-8 pb-4 md:pb-6 pt-1 h-[calc(100%-70px)] overflow-y-auto custom-scrollbar">
+                            <p
+                              className={`
+                                text-[13px] md:text-lg leading-[1.55rem]
+                                text-black/90 ${handFont.className}
+                              `}
+                            >
+                              {projects[currIndex].details}
+                            </p>
+
+                            <div className="mt-4 md:mt-6 text-[11px] md:text-sm text-black/70 font-bold">
+                              <span className="bg-yellow-300 px-2 py-1 border border-black rounded">
+                                STATUS: EM PRODUÇÃO
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Imagem */}
+                  <div className="h-[40%] md:h-[45%] w-full bg-gray-800 relative border-b-[4px] md:border-b-[6px] border-black">
+                    <div className="absolute inset-0 flex items-center justify-center bg-orange-900/20">
+                      <Cpu size={60} className="text-orange-500/30" />
+                    </div>
+                    <Image
+                      src={projects[currIndex].image}
+                      alt="Project Image"
+                      fill
+                      className="object-cover opacity-80"
+                    />
+                    <div className="absolute top-2 right-2 md:top-4 md:right-4 bg-yellow-400 border-2 md:border-4 border-black px-2 py-1 text-black font-black text-xs transform rotate-3 z-10">
+                      v1.0.0
+                    </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 md:gap-4 mt-auto">
-                    <button
-                      onClick={() => setShowDetails(true)}
-                      className="flex items-center justify-center gap-1 md:gap-2 py-3 md:py-4 bg-orange-600 text-white font-black border-2 md:border-4 border-black shadow-[3px_3px_0px_black] active:translate-y-1 active:shadow-none transition-all rounded-lg md:rounded-xl text-xs md:text-base"
+                  {/* Conteúdo */}
+                  <div className="flex-1 p-4 md:p-8 flex flex-col bg-[#222]">
+                    <div className="flex items-center gap-2 mb-2 md:mb-4">
+                      <Terminal className="text-orange-500" size={20} />
+                      <h3
+                        className={`text-xl md:text-3xl text-white ${titleFont.className}`}
+                      >
+                        {projects[currIndex].title}
+                      </h3>
+                    </div>
+
+                    <p
+                      className={`text-gray-400 text-xs md:text-sm leading-relaxed mb-4 flex-1 ${codeFont.className}`}
                     >
-                      DETALHES
-                    </button>
-                    <a
-                      href={projects[currIndex].github}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-1 md:gap-2 py-3 md:py-4 bg-[#333] text-white font-bold border-2 md:border-4 border-black shadow-[3px_3px_0px_black] active:translate-y-1 active:shadow-none transition-all rounded-lg md:rounded-xl text-xs md:text-base"
-                    >
-                      <Github size={16} /> CODE
-                    </a>
+                      {projects[currIndex].desc}
+                    </p>
+
+                    <div className="flex flex-wrap gap-1 md:gap-2 mb-4">
+                      {projects[currIndex].techs.map((t) => (
+                        <span
+                          key={t}
+                          className="px-2 py-1 bg-orange-500/20 border border-orange-500 text-orange-400 text-[10px] md:text-xs font-bold rounded"
+                        >
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 md:gap-4 mt-auto">
+                      <button
+                        type="button"
+                        onClick={() => setShowDetails(true)}
+                        className="flex items-center justify-center gap-1 md:gap-2 py-3 md:py-4 bg-orange-600 text-white font-black border-2 md:border-4 border-black shadow-[3px_3px_0px_black] active:translate-y-1 active:shadow-none transition-all rounded-lg md:rounded-xl text-xs md:text-base"
+                      >
+                        DETALHES
+                      </button>
+                      <a
+                        href={projects[currIndex].github}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center gap-1 md:gap-2 py-3 md:py-4 bg-[#333] text-white font-bold border-2 md:border-4 border-black shadow-[3px_3px_0px_black] active:translate-y-1 active:shadow-none transition-all rounded-lg md:rounded-xl text-xs md:text-base"
+                      >
+                        <Github size={16} /> CODE
+                      </a>
+                    </div>
                   </div>
-                </div>
-              </motion.div>
-            </AnimatePresence>
+                </motion.div>
+              </AnimatePresence>
+            </div>
           </div>
         </div>
       </motion.div>
