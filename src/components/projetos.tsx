@@ -16,7 +16,6 @@ const titleFont = Permanent_Marker({ weight: "400", subsets: ["latin"] });
 const codeFont = JetBrains_Mono({ weight: "400", subsets: ["latin"] });
 const handFont = Patrick_Hand({ weight: "400", subsets: ["latin"] });
 
-// IMPORTANTE: NÃO usar window aqui (quebra no SSR). Escalamos só via CSS.
 const satoshiVariants = {
   hidden: (c: number) => ({
     x: c % 2 === 0 ? "-150%" : "150%",
@@ -86,9 +85,11 @@ export function Projetos() {
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
-  const springConfig = { damping: 40, stiffness: 90 };
-  const rotateXRange = isMobile ? [16, -16] : [10, -10];
-  const rotateYRange = isMobile ? [-20, 20] : [-10, 10];
+  const springConfig = isMobile
+    ? { damping: 55, stiffness: 65 }
+    : { damping: 40, stiffness: 90 };
+  const rotateXRange = isMobile ? [14, -14] : [10, -10];
+  const rotateYRange = isMobile ? [-18, 18] : [-10, 10];
 
   const rotateX = useSpring(useTransform(mouseY, [-1, 1], rotateXRange), springConfig);
   const rotateY = useSpring(useTransform(mouseX, [-1, 1], rotateYRange), springConfig);
@@ -103,7 +104,7 @@ export function Projetos() {
   const prevProject = () =>
     setCurrIndex((prev) => (prev - 1 + projects.length) % projects.length);
 
-  // autoplay dos cards
+  // autoplay dos cards (ok, bem leve)
   useEffect(() => {
     if (!isAutoPlaying) return;
     const timer = setInterval(() => {
@@ -112,8 +113,10 @@ export function Projetos() {
     return () => clearInterval(timer);
   }, [isAutoPlaying, showDetails]);
 
-  // satoshi random
+  // satoshi random (desligado no mobile)
   useEffect(() => {
+    if (isMobile) return; // não roda no celular
+
     const triggerSatoshi = () => {
       setSatoshiCorner(Math.floor(Math.random() * 4));
       setShowSatoshi(true);
@@ -123,7 +126,7 @@ export function Projetos() {
     };
     const initialTimer = setTimeout(triggerSatoshi, 3000);
     return () => clearTimeout(initialTimer);
-  }, []);
+  }, [isMobile]);
 
   // mouse desktop
   const handleMouseMove = (e: React.MouseEvent) => {
@@ -135,7 +138,7 @@ export function Projetos() {
     mouseY.set(y);
   };
 
-  // touch mobile (ainda funciona, mas tem 360 automático)
+  // touch mobile – tilt manual, sem 360 automático
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!isMobile) return;
     const touch = e.touches[0];
@@ -146,26 +149,6 @@ export function Projetos() {
     mouseY.set(y);
   };
 
-  // 360 automático no mobile
-  useEffect(() => {
-    if (!isMobile) return;
-
-    let frameId: number;
-    const start = performance.now();
-
-    const loop = (t: number) => {
-      const elapsed = (t - start) / 1000;
-      const autoY = Math.sin(elapsed * 0.25); // gira devagar em Y
-      const autoX = Math.cos(elapsed * 0.2) * 0.4; // balança de leve em X
-      mouseX.set(autoY);
-      mouseY.set(autoX);
-      frameId = requestAnimationFrame(loop);
-    };
-
-    frameId = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(frameId);
-  }, [isMobile, mouseX, mouseY]);
-
   return (
     <section
       onMouseMove={handleMouseMove}
@@ -175,17 +158,22 @@ export function Projetos() {
     >
       {/* LABORATÓRIO 3D */}
       <motion.div
-        style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+        style={{
+          rotateX,
+          rotateY,
+          transformStyle: "preserve-3d",
+          willChange: "transform",
+        }}
         className="relative w-full h-full origin-center"
       >
         {/* FUNDO */}
         <div
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0"
           style={{
-            width: isMobile ? "150vw" : "200vw",
-            height: isMobile ? "150vh" : "150vh",
+            width: isMobile ? "140vw" : "200vw",
+            height: isMobile ? "140vh" : "150vh",
             transform: isMobile
-              ? "translateZ(-260vh) scale(2.8)"
+              ? "translateZ(-220vh) scale(2.3)"
               : "translateZ(-150vh) scale(2)",
           }}
         >
@@ -203,10 +191,10 @@ export function Projetos() {
           className="absolute origin-bottom z-10"
           style={{
             transform: "rotateX(90deg)",
-            bottom: isMobile ? "-60%" : "-40%",
-            left: isMobile ? "-120%" : "-50%",
-            width: isMobile ? "330%" : "200%",
-            height: isMobile ? "220vh" : "200vh",
+            bottom: isMobile ? "-55%" : "-40%",
+            left: isMobile ? "-105%" : "-50%",
+            width: isMobile ? "280%" : "200%",
+            height: isMobile ? "190vh" : "200vh",
           }}
         >
           <Image
@@ -223,10 +211,10 @@ export function Projetos() {
           className="absolute origin-top z-10"
           style={{
             transform: "rotateX(-90deg)",
-            top: isMobile ? "-60%" : "-40%",
-            left: isMobile ? "-120%" : "-50%",
-            width: isMobile ? "330%" : "200%",
-            height: isMobile ? "220vh" : "200vh",
+            top: isMobile ? "-55%" : "-40%",
+            left: isMobile ? "-105%" : "-50%",
+            width: isMobile ? "280%" : "200%",
+            height: isMobile ? "190vh" : "200vh",
           }}
         >
           <Image
@@ -243,10 +231,10 @@ export function Projetos() {
           className="absolute origin-left z-10"
           style={{
             transform: "rotateY(90deg)",
-            top: isMobile ? "-110%" : "-50%",
-            left: isMobile ? "-60%" : "-30%",
-            width: isMobile ? "220vh" : "200vh",
-            height: isMobile ? "320%" : "200%",
+            top: isMobile ? "-100%" : "-50%",
+            left: isMobile ? "-52%" : "-30%",
+            width: isMobile ? "200vh" : "200vh",
+            height: isMobile ? "280%" : "200%",
           }}
         >
           <Image
@@ -263,10 +251,10 @@ export function Projetos() {
           className="absolute origin-right z-10"
           style={{
             transform: "rotateY(-90deg)",
-            top: isMobile ? "-110%" : "-50%",
-            right: isMobile ? "-60%" : "-30%",
-            width: isMobile ? "220vh" : "200vh",
-            height: isMobile ? "320%" : "200%",
+            top: isMobile ? "-100%" : "-50%",
+            right: isMobile ? "-52%" : "-30%",
+            width: isMobile ? "200vh" : "200vh",
+            height: isMobile ? "280%" : "200%",
           }}
         >
           <Image
@@ -278,9 +266,9 @@ export function Projetos() {
           <div className="absolute inset-0 bg-gradient-to-l from-black/90 via-transparent to-transparent" />
         </div>
 
-        {/* SATOSHI */}
+        {/* SATOSHI – só desktop */}
         <AnimatePresence>
-          {showSatoshi && (
+          {!isMobile && showSatoshi && (
             <motion.div
               custom={satoshiCorner}
               variants={satoshiVariants}
@@ -366,10 +354,14 @@ export function Projetos() {
             <AnimatePresence mode="wait">
               <motion.div
                 key={projects[currIndex].id}
-                initial={{ scale: 0, opacity: 0, rotate: -10 }}
+                initial={{ scale: 0, opacity: 0, rotate: -8 }}
                 animate={{ scale: 1, opacity: 1, rotate: 0 }}
-                exit={{ scale: 0, opacity: 0, rotate: 10 }}
-                transition={{ type: "spring", stiffness: 200, damping: 20 }}
+                exit={{ scale: 0, opacity: 0, rotate: 8 }}
+                transition={{
+                  type: "spring",
+                  stiffness: isMobile ? 140 : 200,
+                  damping: isMobile ? 24 : 20,
+                }}
                 className="w-full h-full bg-[#1a1a1a] border-[4px] md:border-[6px] border-black rounded-3xl overflow-hidden shadow-[10px_10px_0px_rgba(0,0,0,0.8)] md:shadow-[20px_20px_0px_rgba(0,0,0,0.8)] relative flex flex-col pointer-events-auto group"
                 onMouseEnter={() => setIsAutoPlaying(false)}
                 onMouseLeave={() => setIsAutoPlaying(true)}
@@ -380,7 +372,7 @@ export function Projetos() {
                       initial={{ y: "100%" }}
                       animate={{ y: 0 }}
                       exit={{ y: "100%" }}
-                      transition={{ type: "spring", damping: 20, stiffness: 100 }}
+                      transition={{ duration: 0.25 }}
                       className="absolute inset-0 z-50 bg-[#fff9c4] p-6 md:p-8 border-t-8 border-black flex flex-col"
                       style={{
                         backgroundImage:

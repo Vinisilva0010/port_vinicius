@@ -1,7 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from "framer-motion";
+import {
+  motion,
+  useMotionValue,
+  useSpring,
+  useTransform,
+  AnimatePresence,
+} from "framer-motion";
 import Image from "next/image";
 import { Permanent_Marker, Patrick_Hand } from "next/font/google";
 
@@ -45,9 +51,13 @@ export function WebProjects() {
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
-  const springConfig = { damping: 50, stiffness: 80 };
-  const rotateXRange = isMobile ? [18, -18] : [10, -10];
-  const rotateYRange = isMobile ? [-24, 24] : [-15, 15];
+  // Springs: mais suaves no mobile
+  const springConfig = isMobile
+    ? { damping: 60, stiffness: 60 }
+    : { damping: 50, stiffness: 80 };
+
+  const rotateXRange = isMobile ? [14, -14] : [10, -10];
+  const rotateYRange = isMobile ? [-18, 18] : [-15, 15];
 
   const rotateX = useSpring(useTransform(mouseY, [-1, 1], rotateXRange), springConfig);
   const rotateY = useSpring(useTransform(mouseX, [-1, 1], rotateYRange), springConfig);
@@ -56,7 +66,7 @@ export function WebProjects() {
   const [currIndex, setCurrIndex] = useState(0);
   const [isExploding, setIsExploding] = useState(false);
 
-  // Movimento do mouse (desktop)
+  // Mouse (desktop)
   const handleMouseMove = (e: React.MouseEvent) => {
     if (isMobile) return;
     const { width, height, left, top } = e.currentTarget.getBoundingClientRect();
@@ -66,7 +76,7 @@ export function WebProjects() {
     mouseY.set(y);
   };
 
-  // Movimento pelo toque (mobile) – ainda funciona, mas o 360 é automático
+  // Touch (mobile) – tilt manual, sem 360 automático
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!isMobile) return;
     const touch = e.touches[0];
@@ -77,33 +87,10 @@ export function WebProjects() {
     mouseY.set(y);
   };
 
-  // 360 automático no mobile
-  useEffect(() => {
-    if (!isMobile) return;
-
-    let frameId: number;
-    const start = performance.now();
-
-    const loop = (t: number) => {
-      const elapsed = (t - start) / 1000; // segundos
-      // gira devagar em Y e dá uma leve oscilada em X
-      const autoY = Math.sin(elapsed * 0.25); // bem lento
-      const autoX = Math.cos(elapsed * 0.18) * 0.4; // menos amplitude
-      mouseX.set(autoY);  // -1 a 1
-      mouseY.set(autoX);  // -0.4 a 0.4
-
-      frameId = requestAnimationFrame(loop);
-    };
-
-    frameId = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(frameId);
-  }, [isMobile, mouseX, mouseY]);
-
   const handleDetonation = () => {
     if (isExploding) return;
     setIsExploding(true);
     setShowDetails(false);
-
     setTimeout(() => {
       setCurrIndex((prev) => (prev + 1) % webProjects.length);
       setIsExploding(false);
@@ -118,7 +105,12 @@ export function WebProjects() {
       style={{ perspective: isMobile ? "900px" : "1500px" }}
     >
       <motion.div
-        style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+        style={{
+          rotateX,
+          rotateY,
+          transformStyle: "preserve-3d",
+          willChange: "transform",
+        }}
         className="relative w-full h-full min-h-screen origin-center"
       >
         {/* --- CENÁRIO 3D --- */}
@@ -127,10 +119,10 @@ export function WebProjects() {
         <div
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0"
           style={{
-            width: isMobile ? "140vw" : "100vw",
-            height: isMobile ? "140vh" : "100vh",
+            width: isMobile ? "130vw" : "100vw",
+            height: isMobile ? "130vh" : "100vh",
             transform: isMobile
-              ? "translateZ(-260vh) scale(2.8)"
+              ? "translateZ(-220vh) scale(2.2)"
               : "translateZ(-150vh) scale(1.8)",
           }}
         >
@@ -148,10 +140,10 @@ export function WebProjects() {
           className="absolute origin-bottom z-10"
           style={{
             transform: "rotateX(90deg)",
-            bottom: isMobile ? "-60%" : "-40%",
-            left: isMobile ? "-110%" : "-50%",
-            width: isMobile ? "320%" : "200%",
-            height: isMobile ? "220vh" : "150vh",
+            bottom: isMobile ? "-55%" : "-40%",
+            left: isMobile ? "-100%" : "-50%",
+            width: isMobile ? "280%" : "200%",
+            height: isMobile ? "190vh" : "150vh",
           }}
         >
           <Image
@@ -168,10 +160,10 @@ export function WebProjects() {
           className="absolute origin-top z-10"
           style={{
             transform: "rotateX(-90deg)",
-            top: isMobile ? "-60%" : "-41%",
-            left: isMobile ? "-110%" : "-50%",
-            width: isMobile ? "320%" : "200%",
-            height: isMobile ? "220vh" : "150vh",
+            top: isMobile ? "-55%" : "-41%",
+            left: isMobile ? "-100%" : "-50%",
+            width: isMobile ? "280%" : "200%",
+            height: isMobile ? "190vh" : "150vh",
           }}
         >
           <Image
@@ -187,10 +179,10 @@ export function WebProjects() {
           className="absolute origin-left z-10"
           style={{
             transform: "rotateY(90deg)",
-            top: isMobile ? "-110%" : "-50%",
-            left: isMobile ? "-55%" : "-41%",
-            width: isMobile ? "220vh" : "150vh",
-            height: isMobile ? "320%" : "200%",
+            top: isMobile ? "-100%" : "-50%",
+            left: isMobile ? "-50%" : "-41%",
+            width: isMobile ? "200vh" : "150vh",
+            height: isMobile ? "280%" : "200%",
           }}
         >
           <Image
@@ -206,10 +198,10 @@ export function WebProjects() {
           className="absolute origin-right z-10"
           style={{
             transform: "rotateY(-90deg)",
-            top: isMobile ? "-110%" : "-50%",
-            right: isMobile ? "-55%" : "-40%",
-            width: isMobile ? "220vh" : "150vh",
-            height: isMobile ? "320%" : "200%",
+            top: isMobile ? "-100%" : "-50%",
+            right: isMobile ? "-50%" : "-40%",
+            width: isMobile ? "200vh" : "150vh",
+            height: isMobile ? "280%" : "200%",
           }}
         >
           <Image
@@ -243,7 +235,7 @@ export function WebProjects() {
         {/* --- CONTAINER INTERATIVO --- */}
         <div
           className="absolute inset-0 flex flex-col items-center justify-center z-[100] gap-6 sm:gap-10 pointer-events-none px-4 pt-32 sm:pt-0"
-          style={{ transform: isMobile ? "translateZ(50px)" : "translateZ(50px)" }}
+          style={{ transform: "translateZ(50px)" }}
         >
           {/* CARD */}
           <AnimatePresence mode="wait">
@@ -251,13 +243,13 @@ export function WebProjects() {
               key={currIndex}
               initial={{ scale: 0.5, opacity: 0 }}
               animate={{
-                scale: isExploding ? 1.5 : 1,
+                scale: isExploding ? 1.3 : 1, // menos agressivo
                 opacity: 1,
-                filter: isExploding ? "brightness(5)" : "brightness(1)",
-                rotate: isExploding ? [0, -5, 5, 0] : 0,
+                filter: isExploding ? "brightness(2)" : "brightness(1)",
+                rotate: isExploding ? [0, -3, 3, 0] : 0,
               }}
-              exit={{ scale: 2, opacity: 0 }}
-              transition={{ duration: 0.3 }}
+              exit={{ scale: 1.5, opacity: 0 }}
+              transition={{ duration: 0.25 }}
               className="pointer-events-auto w-full max-w-[340px] sm:max-w-[400px] md:max-w-[450px] h-auto sm:h-[550px] md:h-[600px] bg-white border-4 sm:border-[6px] border-black rounded-3xl sm:rounded-[40px] shadow-[10px_10px_0px_#000] sm:shadow-[20px_20px_0px_#000] overflow-hidden flex flex-col relative"
             >
               <div className="h-48 sm:h-64 md:h-80 w-full bg-gray-200 border-b-3 sm:border-b-4 border-black relative">
@@ -276,6 +268,7 @@ export function WebProjects() {
                       initial={{ x: "100%", opacity: 0 }}
                       animate={{ x: 0, opacity: 1 }}
                       exit={{ x: "100%", opacity: 0 }}
+                      transition={{ duration: 0.25 }}
                       className="absolute inset-0 z-50 bg-[#fff9c4] p-4 sm:p-6 md:p-8 border-l-3 sm:border-l-4 border-black overflow-y-auto"
                       style={{
                         backgroundImage: "linear-gradient(#aad4ff 1px, transparent 1px)",
@@ -346,13 +339,14 @@ export function WebProjects() {
             onClick={handleDetonation}
           >
             <motion.div
-              animate={{
-                y: [0, -6, 0],
-                rotate: [-2, 3, -2],
-              }}
+              animate={
+                isMobile
+                  ? { y: [0, -4, 0] } // mobile mais leve
+                  : { y: [0, -6, 0], rotate: [-2, 3, -2] }
+              }
               transition={{
                 repeat: Infinity,
-                duration: 2,
+                duration: 2.4,
                 ease: "easeInOut",
               }}
               className={`absolute -top-10 sm:-top-14 md:-top-16 bg-yellow-400 border-3 sm:border-4 border-black px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl shadow-[4px_4px_0px_#000] sm:shadow-[6px_6px_0px_#000] z-[110] ${titleFont.className} text-black text-sm sm:text-base md:text-lg whitespace-nowrap transform`}
@@ -363,20 +357,17 @@ export function WebProjects() {
             </motion.div>
 
             <motion.div
-              animate={{
-                scale: [1, 1.08, 1],
-                rotate: [0, -1, 1, 0],
-              }}
+              animate={
+                isMobile
+                  ? { scale: [1, 1.03, 1] } // pulso bem leve no mobile
+                  : { scale: [1, 1.08, 1], rotate: [0, -1, 1, 0] }
+              }
               transition={{
                 repeat: Infinity,
-                duration: 1.5,
+                duration: 1.8,
                 ease: "easeInOut",
               }}
-              whileHover={{
-                scale: 1.2,
-                rotate: 5,
-                filter: "brightness(1.2)",
-              }}
+              whileHover={!isMobile ? { scale: 1.2, rotate: 5, filter: "brightness(1.2)" } : {}}
               whileTap={{ scale: 0.8, y: 10 }}
               className="w-full h-full relative"
             >
