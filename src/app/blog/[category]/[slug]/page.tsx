@@ -9,6 +9,7 @@ const codeFont = JetBrains_Mono({ weight: "400", subsets: ["latin"] });
 
 export async function generateStaticParams() {
   const posts = getAllPosts();
+  const validPosts = posts.filter((post) => post.category && post.slug);
   return posts.map((post) => ({
     category: post.category,
     slug: post.slug,
