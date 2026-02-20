@@ -1,0 +1,52 @@
+---
+title: "unsafe ajuda muito"
+date: "2025-05-11"
+category: "rust"
+description: "Código deve ser muito rápido sem travas."
+---
+
+Gosto muito do Rust porque ele é seguro, mas também é bem chatinho em algumas coisas. Ele não deixa acessar a memória que não existe, não deixa criar ponteiros nulos. Ele é bem protetor para não permitir erros.
+
+Mas tem momentos que é preciso fazer umas alterações no hardware. E precisa de performance nível Assembly.
+Nesses casos eu gosto muito de usar o **unsafe**.
+
+Porque quando é aberto um bloco `unsafe`, você diz para o compilador confiar em você e ficar quieto.
+
+## O acesso é feito assim:
+
+Em casos onde vai ser acessado um endereço de memória direto, igual em outras linguagens. O Rust normal não deixa porque ele acha que vai dar erro.
+
+Para arrumar isso eu uso "Raw Pointers" (Ponteiros Brutos).
+
+### O Código:
+
+```rust
+fn main() {
+    let numero: i32 = 42;
+
+    // Cria um ponteiro que aponta para o endereço da variável 'numero'.
+    // O Rust deixa criar, mas NÃO deixa ler.
+    let ponteiro_bruto = &numero as *const i32;
+
+    println!("Endereço de memória: {:?}", ponteiro_bruto);
+
+    unsafe {
+        // Aqui dentro a lei não existe.
+        // Está acessando o valor direto no endereço físico da memória.
+        // Se esse endereço fosse inválido, o programa explodiria (Segfault).
+        
+        println!("Valor lido na marra: {}", *ponteiro_bruto);
+    }
+}
+No trabalho eu uso isso em:
+
+Drivers de Hardware: Para falar com a placa de vídeo ou rede, 
+você precisa escrever em endereços de memória específicos.
+
+Engines de Jogos: Sabe aquele jogo que roda a 240 FPS? 
+Ele usa unsafe para pular verificações de segurança que deixam o jogo lento.
+
+Bibliotecas do Próprio Rust: Por dentro, estruturas como Vec e String são cheias de unsafe para serem rápidas.
+
+O problema é que isso é bastante perigoso, 
+porque caso erre, o programa fecha na cara. Mas é assim que projetos rápidos são criados.

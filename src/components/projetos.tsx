@@ -39,37 +39,100 @@ const satoshiVariants = {
   }),
 };
 
+// 10 PROJETOS NÍVEL ELITE DO VALE DO SILÍCIO
 const projects = [
   {
     id: 1,
     title: "Solana Sniper Bot",
-    desc: "Bot Rust de alta frequência. Monitora mempool e compra em <200ms.",
+    desc: "Bot Rust de alta frequência. Monitora mempool e ataca em <200ms.",
     techs: ["Rust", "Tokio", "Solana SDK"],
     github: "https://github.com/Vinisilva0010",
-    image: "/projects/card-bot.png",
-    details:
-      "Algoritmo de front-running ético para proteção de liquidez. Usa arquitetura Event-Driven para reagir a blocos em milissegundos.",
+    image: "/projects/um.png",
+    details: "Algoritmo de front-running ético para proteção de liquidez. Usa arquitetura Event-Driven para reagir a blocos em milissegundos sem gargalo de CPU.",
   },
   {
     id: 2,
-    title: "DeFi Auto-Staker",
-    desc: "Smart Contract de juros compostos. Auditoria 100% aprovada.",
-    techs: ["Solidity", "Hardhat", "Next.js"],
+    title: "Aegis-RS Firewall",
+    desc: "WAF Inteligente on-chain. Vencedor do Hackathon AI do Google.",
+    techs: ["Rust", "Gemini 3", "Wasm"],
     github: "https://github.com/Vinisilva0010",
-    image: "/projects/card-defi.png",
-    details:
-      "Contrato inteligente auditado com sistema de Rebase automático. Otimizado para reduzir taxas de gás na rede Ethereum.",
+    image: "/projects/dois.png", // Ajuste a imagem conforme necessário
+    details: "Um escudo nível bancário. Usa inteligência artificial generativa em tempo real para interceptar payloads maliciosos e barrar injeções de contrato.",
   },
   {
     id: 3,
-    title: "Rust Chain Indexer",
-    desc: "Indexador ultra-rápido para EVM. Milhares de tx/s sem delay.",
-    techs: ["Rust", "Postgres", "gRPC"],
+    title: "3D Anatomy Engine",
+    desc: "Renderizador anatômico de alta fidelidade in-browser.",
+    techs: ["Three.js", "React", "WebGL"],
     github: "https://github.com/Vinisilva0010",
-    image: "/projects/card-indexer.png",
-    details:
-      "Sistema capaz de indexar milhões de eventos de blockchain em tempo real. Utiliza paralelismo do Rust para máxima performance.",
+    image: "/projects/des.png",
+    details: "Motor gráfico focado no setor médico. Processa e renderiza modelos complexos com iluminação dinâmica usando WebGL, sem gargalar o navegador do usuário.",
   },
+  {
+    id: 4,
+    title: "Flashloan Arbitrage Engine",
+    desc: "Arbitragem atômica sem risco com contratos Aave V3.",
+    techs: ["Solidity", "Rust", "Hardhat"],
+    github: "https://github.com/Vinisilva0010",
+    image: "/projects/quatro.png",
+    details: "Dinheiro infinito por 1 bloco. O backend em Rust calcula rotas triangulares perfeitas entre DEXs e o contrato inteligente executa o empréstimo instantâneo focando em extração de MEV.",
+  },
+  {
+    id: 5,
+    title: "Zanvexis Core Chain",
+    desc: "Blockchain L1 proprietária desenvolvida do absoluto zero.",
+    techs: ["Rust", "libp2p", "Substrate"],
+    github: "https://github.com/Vinisilva0010",
+    image: "/projects/cinco.png",
+    details: "Para dominar a tecnologia, eu construí a minha própria. Motor de consenso ultra-rápido, rede P2P customizada e blocos minerados com eficiência máxima.",
+  },
+  {
+    id: 6,
+    title: "Crypto Payment Gateway",
+    desc: "Processador de pagamentos descentralizado e blindado.",
+    techs: ["Rust", "React", "Next.js"],
+    github: "https://github.com/Vinisilva0010",
+    image: "/projects/seis.png",
+    details: "Uma alternativa a Stripe para a Web3. O motor em Rust garante verificação criptográfica das transações EVM e Bitcoin sem depender de intermediários.",
+  },
+  {
+    id: 7,
+    title: "Mempool Predator",
+    desc: "Bot avançado de proteção e extração MEV na Ethereum.",
+    techs: ["Rust", "Ethers-rs", "Flashbots"],
+    github: "https://github.com/Vinisilva0010",
+    image: "/projects/sete.png",
+    details: "Fica escutando transações pendentes no mempool. Identifica oportunidades e envia pacotes (bundles) direto para os mineradores via Flashbots, invisível para o mercado aberto.",
+  },
+  {
+    id: 8,
+    title: "Darkpool Exchange",
+    desc: "DEX anônima usando provas de conhecimento nulo (Zero-Knowledge).",
+    techs: ["Solidity", "ZK-Snarks", "Next.js"],
+    github: "https://github.com/Vinisilva0010",
+    image: "/projects/oito.png",
+    details: "Plataforma focada em grandes baleias. Permite negociações ocultas de tokens sem impactar o livro de ofertas público ou expor o endereço de origem.",
+  },
+  {
+    id: 9,
+    title: "Fluency Master Web3",
+    desc: "EdTech com IA e recompensas descentralizadas.",
+    techs: ["React", "Rust", "Smart Contracts"],
+    github: "https://github.com/Vinisilva0010",
+    image: "/projects/nove.png",
+    details: "Onde educação encontra a blockchain. Avatares gerados por IA para conversação, com o backend Rust gerenciando os smart contracts de recompensa para alunos de alta performance.",
+  },
+
+  {
+    id: 10,
+    title: "Agent Arena",
+    desc: "Monitoramento on-chain de baleias da Solana com ruído zero.",
+    techs: ["Rust", "WebSocket", "Solana RPC"],
+    github: "https://github.com/Vinisilva0010",
+    image: "/projects/tres1.png",
+    details: "Conecta direto na fonte (RPC Node) e filtra milhões de logs diretamente na ingestão. Usado para rastrear movimentações institucionais antes do mercado reagir.",
+  },
+
 ];
 
 export function Projetos() {
@@ -158,11 +221,11 @@ export function Projetos() {
           transformStyle: "preserve-3d",
           willChange: "transform",
         }}
-        className="relative w-full h-full origin-center"
+        className="relative w-full h-full origin-center pointer-events-none"
       >
-        {/* FUNDO */}
+        {/* FUNDO - Adicionado pointer-events-none */}
         <div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0 pointer-events-none"
           style={{
             width: isMobile ? "140vw" : "200vw",
             height: isMobile ? "140vh" : "150vh",
@@ -180,9 +243,9 @@ export function Projetos() {
           <div className="absolute inset-0 bg-black/40" />
         </div>
 
-        {/* CHÃO */}
+        {/* CHÃO - Adicionado pointer-events-none */}
         <div
-          className="absolute origin-bottom z-10"
+          className="absolute origin-bottom z-10 pointer-events-none"
           style={{
             transform: "rotateX(90deg)",
             bottom: isMobile ? "-55%" : "-40%",
@@ -200,9 +263,9 @@ export function Projetos() {
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent" />
         </div>
 
-        {/* TETO */}
+        {/* TETO - Adicionado pointer-events-none */}
         <div
-          className="absolute origin-top z-10"
+          className="absolute origin-top z-10 pointer-events-none"
           style={{
             transform: "rotateX(-90deg)",
             top: isMobile ? "-55%" : "-40%",
@@ -220,9 +283,9 @@ export function Projetos() {
           <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-transparent to-transparent" />
         </div>
 
-        {/* PAREDE ESQUERDA */}
+        {/* PAREDE ESQUERDA - Adicionado pointer-events-none */}
         <div
-          className="absolute origin-left z-10"
+          className="absolute origin-left z-10 pointer-events-none"
           style={{
             transform: "rotateY(90deg)",
             top: isMobile ? "-100%" : "-50%",
@@ -240,9 +303,9 @@ export function Projetos() {
           <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-transparent to-transparent" />
         </div>
 
-        {/* PAREDE DIREITA */}
+        {/* PAREDE DIREITA - Adicionado pointer-events-none */}
         <div
-          className="absolute origin-right z-10"
+          className="absolute origin-right z-10 pointer-events-none"
           style={{
             transform: "rotateY(-90deg)",
             top: isMobile ? "-100%" : "-50%",
@@ -324,7 +387,7 @@ export function Projetos() {
 
         {/* CARROSSEL (botões e card totalmente clicáveis) */}
         <div
-          className="absolute inset-0 flex items-center justify-center z-40"
+          className="absolute inset-0 flex items-center justify-center z-40 pointer-events-auto"
           style={{ transform: "translateZ(-80px)" }}
         >
           <div className="relative w-full h-full flex items-center justify-center">

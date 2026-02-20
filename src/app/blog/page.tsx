@@ -5,7 +5,7 @@ import { Permanent_Marker } from "next/font/google";
 const titleFont = Permanent_Marker({ weight: "400", subsets: ["latin"] });
 
 const categories = [
-  { id: "rust", title: "RUST HEAVY METAL", img: "/blog/card-rust.png", color: "border-orange-600 shadow-orange-900" },
+  { id: "rust", title: "RUST ", img: "/blog/card-rust.png", color: "border-orange-600 shadow-orange-900" },
   { id: "crypto", title: "CRIPTO & SCAMS", img: "/blog/card-crypto.png", color: "border-green-600 shadow-green-900" },
   { id: "effects", title: "ALUCINAÇÕES 3D", img: "/blog/card-effects.png", color: "border-purple-600 shadow-purple-900" },
   { id: "scripts", title: "GAMBIARRAS.PY", img: "/blog/card-scripts.png", color: "border-blue-600 shadow-blue-900" },
@@ -15,7 +15,7 @@ export default function BlogHome() {
   return (
     <main className="min-h-screen bg-[#111] py-20 px-4">
       <h1 className={`text-center text-5xl md:text-7xl text-yellow-400 mb-16 ${titleFont.className} drop-shadow-[5px_5px_0px_#000]`}>
-        ESCOLHA O VENENO
+        Escolha um
       </h1>
 
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">

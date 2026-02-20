@@ -1,0 +1,92 @@
+---
+title: "Userbot: Seu Clone Digital no Telegram"
+date: "2025-11-30"
+category: "scripts"
+description: "Como automatizar sua conta pessoal do Telegram para monitorar milhares de grupos e filtrar informações em tempo real."
+---
+
+Os bots oficiais do Telegram são limitados. Eles não podem ler mensagens de outros usuários em grupos onde não são administradores (Privacy Mode).
+Mas o **Userbot** não tem limites. Ele usa a API de Cliente (MTProto), ou seja, para o Telegram, o script **é você**.
+
+Você pode usar isso para:
+1.  **Monitorar Sinais:** Ler 100 grupos de cripto e encaminhar qualquer mensagem que tenha "BTC" ou "Long" para você.
+2.  **Auto-Resposta:** Responder clientes enquanto você dorme.
+3.  **Limpeza:** Apagar todas as suas mensagens de um grupo antigo.
+
+Eu gosto de  usar a biblioteca **Telethon**. Ela é assíncrona e muito rápida.
+
+## O Setup
+
+1.  Instale a lib: `pip install telethon`
+2.  Entre em `my.telegram.org` (site oficial), faça login e vá em "API Development Tools".
+3.  Pegue seu `api_id` e `api_hash`.
+
+## O Código: O Sentinela de Grupos
+
+Esse script vai ficar escutando **todos** os grupos que você participa. Se alguém falar uma palavra-chave (ex: "lançamento"), ele encaminha a mensagem para o seu privado na hora.
+
+Salve como `sentinela.py`.
+
+```python
+from telethon import TelegramClient, events
+
+# CONFIGURAÇÕES (Pegue no my.telegram.org)
+API_ID = 1234567 
+API_HASH = 'sua_hash_aqui_blabla'
+
+# Palavras que você quer monitorar
+PALAVRAS_CHAVE = ['lançamento', 'promoção', 'bug', 'gem', 'whitelist']
+
+# Onde você quer receber o alerta? (Pode ser 'me' para Mensagens Salvas)
+CANAL_DESTINO = 'me' 
+
+# Cria a sessão (vai pedir seu número e código na primeira vez)
+client = TelegramClient('sessao_do_vinicius', API_ID, API_HASH)
+
+@client.on(events.NewMessage)
+async def handler(event):
+    # O script roda para CADA nova mensagem que chega no seu Telegram
+    
+    # Filtro 1: Ignora mensagens suas ou de bots
+    if event.out or event.sender_id == (await client.get_me()).id:
+        return
+
+    # Pega o texto da mensagem e converte pra minúsculo
+    texto = event.raw_text.lower()
+    
+    # Filtro 2: Verifica se tem alguma palavra-chave
+    if any(palavra in texto for palavra in PALAVRAS_CHAVE):
+        try:
+            # Descobre de onde veio (Nome do Grupo)
+            chat = await event.get_chat()
+            nome_grupo = chat.title if hasattr(chat, 'title') else "Chat Privado"
+            
+            print(f" Alerta encontrado em: {nome_grupo}")
+            
+            # AÇÃO: Encaminha para você com um aviso
+            await client.send_message(
+                CANAL_DESTINO, 
+                f" **ALERTA NO GRUPO:** {nome_grupo}\n\n{event.raw_text}"
+            )
+            
+            # Opcional: Encaminhar a mídia (foto/video) se tiver
+            # await event.forward_to(CANAL_DESTINO)
+
+        except Exception as e:
+            print(f"Erro ao encaminhar: {e}")
+
+print(" Sentinela rodando... Pode minimizar.")
+client.start()
+client.run_until_disconnected()
+Como rodar
+Na primeira vez que você rodar (python sentinela.py), 
+ele vai pedir seu número de telefone e o código que chegar no seu app Telegram. 
+Depois disso, ele cria um arquivo .session e conecta direto.
+
+Dica 
+Se você colocar isso num servidor VPS rodando 24h, você nunca mais perde uma oportunidade.
+Eu uso isso para monitorar a palavra "vaga" 
+em grupos de freelancers e "whitelist" em grupos de NFT. Eu recebo a notificação antes de todo mundo.
+
+Cuidado: Não use isso para fazer SPAM (mandar mensagem em 100 grupos ao mesmo tempo). 
+O Telegram detecta e bane contas de Userbot que fazem spam. Mas para ler e monitorar, é tranquilo e indetectável.

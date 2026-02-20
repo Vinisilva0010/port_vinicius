@@ -1,0 +1,96 @@
+---
+title: "Automação Visual: O Robô que Vê e Clica"
+date: "2025-11-05"
+category: "scripts"
+description: "Bot para controlar o mause usando reconhecimentos de imagem. que automatiza programas sem API."
+---
+uso isso para quando preciso fazer tarefas repetitivas num sistema Desktop antigo,
+num jogo ou num site cheio de travas que bloqueia scripts normais
+
+
+A solução é mandar o mouse clicar na coordenada X=100, Y=200. Mas se a janela mudar de lugar, o bot quebra.
+A perfeita solução é usar **PyAutoGUI com OpenCV**.
+
+O script não clica em coordenadas. Ele escaneia os pixels da sua tela procurando uma imagem que você salvou (ex: o print de um botão "Confirmar") e clica exatamente no centro dela, onde quer que ela esteja.
+
+## O Setup
+
+1. Instale as libs: `pip install pyautogui opencv-python pillow`
+2. **Importante:** Tire "prints" pequenos dos botões que você quer clicar e salve na pasta do projeto (ex: `botao_login.png`, `campo_busca.png`).
+
+## O Código: O Olho de Águia
+
+Esse script é à prova de falhas. Ele espera a imagem aparecer na tela antes de tentar clicar.
+
+```python
+import pyautogui
+import time
+import os
+
+# CONFIGURAÇÃO DE SEGURANÇA
+# Se o bot ficar louco, arraste o mouse bruscamente para o canto 
+# superior esquerdo da tela para matar o script na hora.
+pyautogui.FAILSAFE = True
+
+def encontrar_e_clicar(imagem_alvo, tentativas=10):
+    print(f"Procurando por: {imagem_alvo}...")
+    
+    for i in range(tentativas):
+        try:
+            # confidence=0.8 significa que se a imagem for 80% parecida, ele clica.
+            # Isso ajuda se o botão mudar levemente de cor ou brilho.
+            localizacao = pyautogui.locateOnScreen(imagem_alvo, confidence=0.8)
+            
+            if localizacao:
+                # Pega o centro da imagem encontrada
+                ponto_central = pyautogui.center(localizacao)
+                x, y = ponto_central
+                
+                print(f"Encontrado em X={x}, Y={y}. Clicando...")
+                
+                # Move o mouse com uma leve duração para parecer humano
+                pyautogui.moveTo(x, y, duration=0.2)
+                pyautogui.click()
+                return True
+            else:
+                time.sleep(1) # Espera 1 seg e tenta de novo
+                
+        except Exception as e:
+            print(f"Erro ao processar imagem: {e}")
+            
+    print(f"Falha: Não encontrei {imagem_alvo} após {tentativas} segundos.")
+    return False
+
+def automacao_rotina():
+    # Exemplo de fluxo de trabalho:
+    
+    # 1. Abre o programa (Ex: Clica no ícone do Excel na barra de tarefas)
+    if encontrar_e_clicar("icone_excel.png"):
+        time.sleep(5) # Espera o programa abrir
+        
+    # 2. Clica em "Novo Arquivo"
+    encontrar_e_clicar("botao_novo.png")
+    
+    # 3. Digita algo (PyAutoGUI também controla teclado)
+    pyautogui.write("Relatorio Diario - Automatizado", interval=0.05)
+    pyautogui.press('enter')
+    
+    # 4. Salva
+    if encontrar_e_clicar("botao_salvar.png"):
+        print("Processo finalizado com sucesso!")
+
+if __name__ == "__main__":
+    print("Iniciando em 3 segundos... Tire a mão do mouse.")
+    time.sleep(3)
+    automacao_rotina()
+
+Indetectável: Para o sistema operacional, é um mouse USB enviando sinal. 
+Não tem injeção de código HTML nem requisição HTTP suspeita.
+
+Universal: Funciona em SAP, Photoshop, Jogos (MMORPG), Sites de Banco, qualquer coisa que apareça no monitor.
+
+Resiliente: Se a internet ficar lenta e o botão demorar 5 segundos a mais para aparecer, 
+o script espera (pelo loop for) em vez de clicar no vazio e errar tudo.
+
+Eu uso muito isso para preencher formulários fiscais em programas do governo que não deixam importar dados. 
+O script lê meu Excel e vai digitando no programa deles enquanto eu tomo café.

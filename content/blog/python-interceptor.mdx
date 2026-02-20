@@ -1,0 +1,89 @@
+---
+title: "O Espião de Apps: Interceptando APIs Privadas"
+date: "2026-02-20"
+category: "scripts"
+description: "Como descobrir os endpoints ocultos de aplicativos de celular usando Python como um proxy Man-in-the-Middle."
+---
+
+Essa é a técnica mais poderosa que eu conheço para quem quer automatizar coisas que "não deveriam" ser automatizadas.
+
+Muitos apps famosos (Instagram, TikTok, Apps de Bancos, iFood) não querem que você crie bots para eles. Então eles não liberam documentação da API.
+
+Mas o aplicativo no seu celular *precisa* falar com o servidor deles. Ele manda requisições HTTP com JSON, igualzinho a um site. Se você conseguir ficar no meio do caminho e ler essas mensagens, você descobre exatamente como o app funciona e pode replicar isso no seu código.
+
+Nós vamos usar o Python com uma ferramenta chamada **mitmproxy**.
+
+## O Setup (A parte chata, mas necessária)
+
+Isso não é só rodar um `.py`. Exige preparação:
+
+1.  **No PC:** Instale o mitmproxy: `pip install mitmproxy`
+2.  **No Celular:** Vá nas configurações do Wi-Fi, segure na sua rede e clique em "Modificar Rede". Nas opções avançadas de Proxy, coloque "Manual", IP do seu PC e porta 8080.
+3.  **Certificado:** Abra o navegador do celular e acesse `mitm.it`. Baixe e instale o certificado Root CA (Android ou iOS). *Isso é o que permite o Python abrir o HTTPS do celular sem dar erro.*
+
+## O Código: O Filtro Mágico
+
+Agora que seu celular está passando pelo seu PC, vai aparecer tráfego de tudo (WhatsApp, Google, etc). O script Python serve para filtrar só o que interessa e extrair o ouro.
+
+Salve como `espiador.py`.
+
+```python
+from mitmproxy import http
+import json
+
+# CONFIGURAÇÃO: O domínio do app que você quer espionar.
+# Dica: Rode o mitmproxy sem script primeiro e use o app para descobrir o domínio.
+TARGET_HOST = "api-privada.app-exemplo.com"
+
+# Essa função roda toda vez que o celular ENVIA um pedido
+def request(flow: http.HTTPFlow):
+    if TARGET_HOST in flow.request.pretty_host:
+        print(f"\n---[  Enviando ]---> {flow.request.method} {flow.request.path}")
+        
+        # Se for um POST (login, envio de dados), mostra o corpo
+        if flow.request.method == "POST":
+             print(f"Payload: {flow.request.text[:200]}...") # Mostra só o começo
+
+# Essa função roda toda vez que o servidor RESPONDE
+def response(flow: http.HTTPFlow):
+    if TARGET_HOST in flow.request.pretty_host:
+        print(f"\n<---[  Recebendo ]--- Status: {flow.response.status_code}")
+
+        # O PULO DO GATO: Se a resposta for JSON, a gente captura.
+        # É aqui que vêm listas de produtos, dados de usuários, preços escondidos.
+        content_type = flow.response.headers.get("content-type", "")
+        if "json" in content_type and flow.response.content:
+            try:
+                data = flow.response.json()
+                
+                # Exemplo: Salvar num arquivo para analisar depois
+                with open("dados_capturados.jsonl", "a", encoding='utf-8') as f:
+                    # Salva a URL e o dado recebido
+                    registro = {"url": flow.request.url, "data": data}
+                    f.write(json.dumps(registro, ensure_ascii=False) + "\n")
+                    
+                print(" JSON secreto capturado e salvo!")
+                
+            except Exception as e:
+                print(f"Erro ao ler JSON: {e}")
+Como Rodar
+Não use python espiador.py. Você tem que usar o motor do mitmproxy para rodar esse script:
+
+Bash
+mitmdump -s espiador.py
+Agora, pegue seu celular e comece a usar o aplicativo alvo. 
+Conforme você navega no app, 
+o terminal do seu PC vai começar a cuspir as requisições escondidas e salvar os dados no arquivo dados_capturados.
+jsonl.
+
+O que fazer com isso?
+Depois de 10 minutos usando o app, você abre o arquivo JSON que gerou. Você vai ver:
+
+Os endpoints exatos (/v2/feed/user/123).
+
+Os Headers necessários (Token de autenticação, User-Agent).
+
+A estrutura dos dados.
+
+Com isso na mão, você não precisa mais do celular. 
+Você pega o Python (requests) ou Rust e recria a chamada exatamente igual. É assim que nascem os bots "não oficiais".

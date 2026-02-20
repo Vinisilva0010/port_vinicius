@@ -1,0 +1,62 @@
+---
+title: "Apagando rastros da memória (Zeroize)"
+date: "2025-03-30"
+category: "rust"
+description: "Como garantir que senhas e chaves privadas sumam da RAM de verdade para evitar vazamentos."
+---
+
+Segurança não é só criptografar o banco de dados. O maior vacilo que vejo em sistemas de cripto e autenticação é deixar a senha solta na memória RAM.
+
+O problema é o seguinte: quando você cria uma variável com uma senha, tipo `let senha = "123456"`, isso fica gravado no pente de memória do servidor ou do PC do cliente.
+
+Quando a função termina, o Rust libera aquela memória pra ser usada de novo. **Mas ele não apaga os dados.**
+O "123456" continua lá fisicamente. Se um hacker conseguir acesso à máquina e fizer um "Dump de Memória" (copiar tudo que tá na RAM), ele acha sua chave privada em texto puro.
+
+Para resolver isso, eu uso uma crate chamada **`zeroize`**.
+
+## O que ela faz?
+
+Ela garante que, antes da variável morrer (Drop), o Rust vai sobrescrever aquele endereço de memória com vários zeros (`00000000`). Assim, se alguém for ler a memória depois, não acha nada.
+
+### Como usar na prática:
+
+Primeiro, adiciona no `Cargo.toml`:
+```toml
+[dependencies]
+zeroize = { version = "1", features = ["derive"] }
+Agora, no código, é só colocar o derive na estrutura que guarda dados sensíveis.
+
+Rust
+use zeroize::{Zeroize, ZeroizeOnDrop};
+
+// ZeroizeOnDrop: Assim que essa struct sair de escopo, 
+// o Rust vai passar a borracha nela automaticamente.
+#[derive(Zeroize, ZeroizeOnDrop)]
+struct CarteiraCripto {
+    chave_privada: String,
+    seed_phrase: Vec<u8>,
+}
+
+fn processar_pagamento() {
+    let carteira = CarteiraCripto {
+        chave_privada: String::from("xprv9s21..."), // Dado super sensível
+        seed_phrase: vec![1, 2, 3, 4],
+    };
+
+    // ...faz a transação aqui...
+
+    // FIM DA FUNÇÃO:
+    // O Rust normal só liberaria a memória.
+    // Com o Zeroize, ele escreve "00000" em cima da chave_privada antes de liberar.
+}
+Isso é obrigatório se você mexe com:
+
+Chaves SSH ou API Keys.
+
+Senhas de usuários.
+
+Seed Phrases de Blockchain.
+
+Se o seu software sofrer um ataque e vazarem a memória,
+ o hacker só vai encontrar zeros. 
+ Isso salva a pele em auditorias de segurança.

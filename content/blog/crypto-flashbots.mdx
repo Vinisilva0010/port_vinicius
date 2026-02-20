@@ -1,0 +1,79 @@
+---
+title: "Transações Invisíveis (Flashbots)"
+date: "2025-06-24"
+category: "crypto"
+description: "Como enviar transações direto para o minerador para evitar Front-running e não gastar Gas se falhar."
+---
+
+O Mempool público é uma "Floresta Negra". Se você tentar fazer uma arbitragem ou pegar um NFT raro pelo caminho normal, os bots de MEV (Miner Extractable Value) vão ver sua transação pendente e te roubar na hora.
+
+A solução profissional é usar **Flashbots**.
+Em vez de jogar a transação na rede para todo mundo ver, você cria um "Bundle" (Pacote) e manda direto para o minerador.
+
+## Vantagens Reais
+
+1.  **Invisibilidade:** Ninguém vê sua transação até ela já estar minerada no bloco. Impossível de levar Front-run.
+2.  **Sem falha, sem taxa:** Se sua arbitragem der errado no meio do caminho, o minerador nem inclui ela no bloco. Você não gasta Gas com transação revertida.
+
+## O Código em Rust
+
+Precisamos da crate `ethers-flashbots`. A lógica é: criar a transação, assinar e empacotar num Bundle.
+
+```rust
+use ethers::prelude::*;
+use ethers_flashbots::{FlashbotsMiddleware, BundleRequest};
+use std::sync::Arc;
+use url::Url;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let chave_privada = "sua_chave_aqui";
+    let wallet = chave_privada.parse::<LocalWallet>()?;
+    
+    // Conexão normal (para ler dados)
+    let provider = Provider::<Http>::try_from("[https://mainnet.infura.io/v3/](https://mainnet.infura.io/v3/)...")?;
+    
+    // Conexão Flashbots (para enviar o ataque)
+    // O 'signer' aqui é quem assina a reputação do bot, não necessariamente quem paga.
+    let client = FlashbotsMiddleware::new(
+        provider.clone(),
+        Url::parse("[https://relay.flashbots.net](https://relay.flashbots.net)")?,
+        wallet.clone()
+    );
+
+    // 1. Montar a Transação (Ex: Arbitragem Uniswap)
+    let tx = TransactionRequest::new()
+        .to("0xEndereçoContrato")
+        .data("0xDadosDaFunção")
+        .gas(500000); // Gas limit
+        
+    // 2. Assinar a transação
+    let typed_tx: TypedTransaction = tx.into();
+    let signature = wallet.sign_transaction(&typed_tx).await?;
+    let raw_tx = typed_tx.rlp_signed(&signature);
+
+    // 3. Criar o Bundle
+    // A gente diz: "Senhor minerador, coloque essa transação no PRÓXIMO bloco"
+    let block_number = provider.get_block_number().await?;
+    
+    let bundle = BundleRequest::new()
+        .push_transaction(raw_tx) // Nossa transação
+        .set_block(block_number + 1) // Alvo: Próximo bloco
+        .set_simulation_block(block_number) // Simula antes pra ver se não vai dar erro
+        .set_simulation_timestamp(0);
+
+    // 4. Enviar
+    let pending_bundle = client.send_bundle(&bundle).await?;
+    
+    println!("Bundle enviado! Esperando resultado...");
+    
+    // Na prática profissional, a gente manda o mesmo bundle para 
+    // múltiplos blocos futuros (Block + 1, Block + 2) para garantir.
+    
+    Ok(())
+}
+
+Mineradores não são caridade. Para eles escolherem seu Bundle em vez das outras transações, você tem que pagar mais.
+No código do contrato inteligente (Solidity), a gente geralmente transfere uma gorjeta direto para o endereço do minerador (block.coinbase) se a operação der lucro.
+
+Se não der lucro, a transação reverte, o minerador não recebe nada, mas também não publica nada. É risco zero para o operador do bot.

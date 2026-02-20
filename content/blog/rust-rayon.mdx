@@ -1,0 +1,50 @@
+---
+title: "Processamento paralelo com Rayon"
+date: "2025-04-19"
+category: "rust"
+description: "Executando loops em várias threads para aumentar velocidade de processamento."
+---
+
+Por padrão, quando se faz um loop `for` no Rust, ele roda em apenas um núcleo do processador (Single Thread).
+Isso significa que se o computador tem 16 núcleos, 15 ficam parados enquanto um trabalha. Para processamento pesado de dados ou criptografia, isso é ineficiente.
+
+Em outras linguagens, criar multithreading é complexo e causa erros de concorrência.
+No Rust, a biblioteca **Rayon** resolve isso alterando apenas o iterador.
+
+Ela divide os dados do loop em pedaços e distribui para todos os núcleos disponíveis na CPU automaticamente.
+
+## Implementação
+
+Para usar, basta adicionar `rayon` no `Cargo.toml`.
+
+No código, a diferença é trocar o `.iter()` pelo `.par_iter()` (Parallel Iterator).
+
+### Exemplo prático
+
+Imagine uma verificação de assinaturas digitais ou hash de senhas, que é algo que exige CPU.
+
+```rust
+use rayon::prelude::*;
+
+fn processar_lista_pesada(dados: Vec<i32>) {
+    // Modo comum (Lento - 1 Núcleo)
+    // dados.iter().for_each(|x| calculo_pesado(x));
+
+    // Modo Rayon (Rápido - Todos os Núcleos)
+    // O Rayon gerencia as threads sozinho
+    dados.par_iter().for_each(|x| {
+        calculo_pesado(x);
+    });
+}
+
+fn calculo_pesado(num: &i32) {
+    // Simula carga de CPU
+}
+Resultados
+Em testes com arrays grandes ou cálculos matemáticos complexos,
+ o tempo de execução cai drasticamente. 
+ Se a máquina tem 8 núcleos, a tarefa tende a ser feita quase 8 vezes mais rápido.
+
+Eu utilizo isso apenas quando o trabalho dentro do loop é realmente pesado (I/O, Cripto, Imagem). 
+Para loops simples de soma ou leitura básica, 
+não vale a pena porque o custo de abrir as threads pode ser maior que o ganho.

@@ -3,7 +3,7 @@
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import Image from "next/image";
 import { useEffect, useState, useRef } from "react";
-
+import Link from 'next/link';
 export function Hero() {
   const [isMobile, setIsMobile] = useState(false);
   const [useGyroscope, setUseGyroscope] = useState(false);
@@ -291,9 +291,12 @@ export function Hero() {
               Full stack developer & Blockchain
             </div>
 
-            <button className="mt-4 sm:mt-8 px-6 sm:px-10 py-3 sm:py-4 bg-purple-600 hover:bg-purple-500 active:bg-purple-700 text-white font-bold text-xs sm:text-base rounded-xl transition-all hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(147,51,234,0.6)]">
-              PRESS START
-            </button>
+                    <Link 
+          href="/blog" 
+          className="inline-block text-center mt-4 sm:mt-8 px-6 sm:px-10 py-3 sm:py-4 bg-purple-600 hover:bg-purple-500 active:bg-purple-700 text-white font-bold text-xs sm:text-base rounded-xl transition-all hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(147,51,234,0.6)]"
+        >
+          Blog
+        </Link>
           </div>
         </div>
       </motion.div>

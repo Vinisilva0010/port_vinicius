@@ -1,0 +1,82 @@
+---
+title: "Modificar sites"
+date: "2025-09-6"
+category: "scripts"
+description: "Como injetar botões e automações diretamente na página de terceiros com Userscripts."
+---
+
+Por que esperar o dono do site criar uma função "Baixar Tudo" ou "Preencher Automático" se você mesmo pode fazer?
+Com **Userscripts**, você injeta código JavaScript assim que a página carrega. Você vira o dono da interface.
+
+## O Cenário
+
+Imagine um sistema da empresa onde você tem que clicar em 50 caixas de seleção (checkbox) uma por uma para aprovar pedidos. Um tédio.
+Vamos criar um botão "Selecionar Tudo" que o programador original esqueceu de fazer.
+
+## O Script (Instale no Tampermonkey)
+
+```javascript
+// ==UserScript==
+// @name         Botão Mágico de Aprovação
+// @namespace    [http://tampermonkey.net/](http://tampermonkey.net/)
+// @version      1.0
+// @description  Adiciona um botão para selecionar tudo e aprovar
+// @author       Vinicius
+// @match        [https://sistema-chato-da-empresa.com/](https://sistema-chato-da-empresa.com/)*
+// @grant        none
+// ==/UserScript==
+
+(function() {
+    'use strict';
+
+    // 1. Criar o botão visualmente
+    const btn = document.createElement("button");
+    btn.innerHTML = " APROVAR TUDO";
+    btn.style.position = "fixed";
+    btn.style.top = "10px";
+    btn.style.right = "10px";
+    btn.style.zIndex = "9999";
+    btn.style.padding = "15px";
+    btn.style.backgroundColor = "red";
+    btn.style.color = "white";
+    btn.style.fontWeight = "bold";
+    btn.style.cursor = "pointer";
+    btn.style.border = "2px solid white";
+
+    // 2. O que ele faz quando clica
+    btn.onclick = function() {
+        // Pega todas as checkboxes da página
+        const caixas = document.querySelectorAll('input[type="checkbox"]');
+        
+        let cont = 0;
+        caixas.forEach(caixa => {
+            if(!caixa.checked) {
+                caixa.click(); // Clica nela
+                cont++;
+            }
+        });
+        
+        // Clica no botão "Salvar" do site (descubra o ID inspecionando)
+        const btnSalvar = document.querySelector('#btn-save-all');
+        if(btnSalvar) btnSalvar.click();
+
+        alert(`Pronto! ${cont} itens aprovados em 1 segundo.`);
+    };
+
+    // 3. Injeta o botão na página
+    document.body.appendChild(btn);
+
+})();
+
+
+
+Utilidade 
+Isso economiza horas de vida.
+
+Compradores: Script que seleciona o tamanho e cor e coloca no carrinho assim que a página abre.
+
+Gamers: Script que coleta recursos do mapa automaticamente.
+
+Devs: Preencher formulários de teste gigantes com dados falsos com 1 clique.
+
+Você não precisa de servidor, não precisa de Python. É só o navegador e sua criatividade.

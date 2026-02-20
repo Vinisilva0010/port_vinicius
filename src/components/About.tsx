@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { Permanent_Marker, Patrick_Hand } from "next/font/google";
-
+import Link from 'next/link';
 // Configuração das fontes
 const markerFont = Permanent_Marker({ weight: "400", subsets: ["latin"] });
 const handFont = Patrick_Hand({ weight: "400", subsets: ["latin"] });
@@ -99,32 +99,35 @@ export function About() {
             </p>
             
             <p>
-              Não sou só mais um dev. Sou o fundador da <span className="font-bold underline decoration-wavy decoration-purple-500">Zanvexis</span>. 
-              Minha missão é simples: pegar a complexidade da tecnologia e transformar em algo que sua avó conseguiria usar (mas com um backend que a NASA invejaria).
+              Eu não faço "sitezinho" de template. Eu construo arquiteturas de alta performance com segurança nível bancário. Meu foco é resolver problemas complexos com código limpo, escalabilidade bruta e interfaces com um design simplesmente perfeito.
             </p>
 
             <div className="bg-yellow-200 p-3 sm:p-4 border-3 sm:border-4 border-black rounded-lg sm:rounded-xl rotate-1 shadow-[4px_4px_0px_0px_#000] sm:shadow-[5px_5px_0px_0px_#000]">
               <p className="font-bold text-sm sm:text-base md:text-lg">
-                🛠️ O que eu faço?
+                🛠️ O meu campo de batalha:
               </p>
               <ul className="list-disc pl-5 sm:pl-6 mt-2 space-y-1 text-sm sm:text-base md:text-lg">
-                <li>Automação com IA (pra você trabalhar menos)</li>
-                <li>Blockchain & Web3 (o futuro do dinheiro)</li>
-                <li>Games & Experiências Interativas</li>
+                <li><strong>Web3 & Cripto:</strong> Smart Contracts, dApps e infraestrutura descentralizada.</li>
+                <li><strong>Super Bots:</strong> Snipers, automações avançadas e robôs de alta precisão.</li>
+                <li><strong>O Motor em Rust:</strong> Backends ultra-rápidos e blindados (porque performance não se negocia).</li>
+                <li><strong>Apps Avançados:</strong> Front-ends imersivos, robustos e com uma UI/UX impecável.</li>
               </ul>
             </div>
 
             <p>
-              Se você quer algo padrão, contrate uma agência. Se quer o futuro, 
-              <span className={`text-purple-700 ml-2 ${markerFont.className}`}>fala comigo.</span>
+              Em todos os meus sistemas, a proteção é prioridade máxima. Não tem gambiarra, não tem brecha. E para colocar toda essa tecnologia de elite no mercado, eu fundei a <span className="font-bold underline decoration-wavy decoration-purple-500">Zanvexis</span>. Sou o criador e a mente técnica por trás dela, transformando ideias impossíveis em realidade.
             </p>
           </div>
 
           {/* BOTÃO DE AÇÃO */}
           <div className="mt-6 sm:mt-8 flex justify-center">
-            <button className={`px-6 sm:px-8 py-2.5 sm:py-3 bg-purple-600 hover:bg-purple-500 active:bg-purple-700 text-white text-base sm:text-xl rounded-lg sm:rounded-xl border-3 sm:border-4 border-black shadow-[4px_4px_0px_0px_#000] sm:shadow-[6px_6px_0px_0px_#000] hover:translate-y-1 hover:shadow-[2px_2px_0px_0px_#000] transition-all active:translate-y-2 active:shadow-none ${markerFont.className}`}>
-              VER MEUS PROJETOS
-            </button>
+            {/* Usando Link para garantir o SEO e a navegação correta */}
+            <Link 
+              href="https://www.zanvexis.com/" 
+              className={`px-6 sm:px-8 py-2.5 sm:py-3 bg-purple-600 hover:bg-purple-500 active:bg-purple-700 text-white text-base sm:text-xl rounded-lg sm:rounded-xl border-3 sm:border-4 border-black shadow-[4px_4px_0px_0px_#000] sm:shadow-[6px_6px_0px_0px_#000] hover:translate-y-1 hover:shadow-[2px_2px_0px_0px_#000] transition-all active:translate-y-2 active:shadow-none ${markerFont.className}`}
+            >
+              Zanvexis 
+            </Link>
           </div>
 
           </motion.div>

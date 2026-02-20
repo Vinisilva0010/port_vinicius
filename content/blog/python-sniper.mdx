@@ -1,0 +1,89 @@
+---
+title: "Bot Sniper: Monitorando sites 24h"
+date: "2025-07-20"
+category: "scripts"
+description: "Um script que vigia alterações em páginas web e notifica no celular via Telegram instantaneamente."
+---
+
+Ficar dando F5 na página esperando uma promoção, um ingresso ou um edital sair é coisa de amador.
+Se você sabe Python, você cria um "sentinela" que fica rodando no servidor (ou no seu PC) e te manda uma mensagem no Telegram no segundo que a informação muda.
+
+A maioria dos tutoriais ensina a usar `BeautifulSoup`, mas isso não funciona em sites modernos (React, Vue) que carregam dados dinamicamente.
+Aqui vamos usar **Playwright**. Ele abre um navegador "invisível" (Headless), renderiza o JavaScript igualzinho a um usuário real e extrai o dado. É muito mais difícil de ser bloqueado.
+
+## O Setup
+
+Você vai precisar de:
+1. Python instalado.
+2. Bibliotecas: `pip install playwright python-telegram-bot`
+3. Instalar os navegadores: `playwright install`
+4. Um Bot no Telegram (fale com o @BotFather para pegar o Token).
+
+## O Código do Sniper
+
+O script abaixo entra num site de e-commerce fictício, procura o preço e, se estiver abaixo do valor alvo, dispara o alerta.
+
+```python
+import asyncio
+from playwright.async_api import async_playwright
+import telegram
+
+# CONFIGURAÇÕES
+URL_ALVO = "[https://www.site-exemplo.com.br/rtx-4090](https://www.site-exemplo.com.br/rtx-4090)"
+PRECO_ALVO = 10000.00  # Só avisa se for menos que 10k
+TELEGRAM_TOKEN = "SEU_TOKEN_AQUI"
+CHAT_ID = "SEU_CHAT_ID"  # Descubra mandando msg pro bot e vendo o log
+
+async def enviar_notificacao(msg):
+    bot = telegram.Bot(token=TELEGRAM_TOKEN)
+    await bot.send_message(chat_id=CHAT_ID, text=msg)
+    print(f" Notificação enviada: {msg}")
+
+async def vigiar():
+    async with async_playwright() as p:
+        # Lança o navegador invisível (headless=True)
+        # Se o site tiver proteção Cloudflare, use headless=False para testar
+        browser = await p.chromium.launch(headless=True)
+        page = await browser.new_page()
+        
+        print(" Iniciando vigilância...")
+
+        while True:
+            try:
+                await page.goto(URL_ALVO, timeout=60000)
+                
+                # Espera o elemento do preço carregar (seletor CSS)
+                # Dica: Inspecione o elemento no Chrome para pegar a classe certa
+                await page.wait_for_selector(".preco-produto")
+                
+                # Pega o texto
+                texto_preco = await page.locator(".preco-produto").inner_text()
+                
+                # Limpeza de string (Tira o R$, troca vírgula por ponto)
+                valor_limpo = texto_preco.replace("R$", "").replace(".", "").replace(",", ".").strip()
+                valor_float = float(valor_limpo)
+
+                print(f"Preço atual: R$ {valor_float}")
+
+                if valor_float <= PRECO_ALVO:
+                    await enviar_notificacao(f" OPORTUNIDADE! Preço caiu para R$ {valor_float}\nLink: {URL_ALVO}")
+                    break # Para o script após achar (ou tira isso pra continuar monitorando)
+
+            except Exception as e:
+                print(f"Erro na leitura (pode ser timeout ou site caiu): {e}")
+
+            # Espera 60 segundos antes de tentar de novo pra não tomar ban de IP
+            await asyncio.sleep(60)
+
+        await browser.close()
+
+if __name__ == "__main__":
+    asyncio.run(vigiar())
+Dicas de "Hacker"
+User Agent: Se o site bloquear, mude o User-Agent nas opções do Playwright para parecer um iPhone ou um PC Gamer.
+
+Proxies: Se você for rodar isso a cada 5 segundos, seu IP vai ser banido. Compre proxies rotativos e configure no launch().
+
+Docker: Coloque esse script num container Docker e jogue num servidor VPS barato (tipo AWS Lightsail ou DigitalOcean) de 5 dólares. Deixe rodando eternamente.
+
+É assim que eu compro hardware em lançamento e monitoro concorrentes.

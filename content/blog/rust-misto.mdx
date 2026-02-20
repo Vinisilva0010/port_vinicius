@@ -1,0 +1,94 @@
+---
+title: "Como eu uso Rust junto de outras linguagens"
+date: "2025-03-05"
+category: "rust"
+description: "Dá sim para usar Rust em códigos antigos com outras linguagens sem quebrar o código."
+---
+
+Isso é muito bom para usar em projetos antigos que estão em código C, Python, Node etc...
+Que estão funcionando bem, mas que têm partes lentas.
+
+Como relatórios que demoram horas pra gerar, um processamento de imagem que trava o servidor ou um cálculo financeiro pesado.
+
+Claro, não precisa mudar todo o sistema para Rust, nem deve, até porque isso iria demorar muito.
+
+Uma solução que eu uso é **FFI (Foreign Function Interface)**.
+Basicamente, o Rust consegue "fingir" que é uma biblioteca em C. Aí o seu Python (ou qualquer outra linguagem) consegue chamar o Rust só pra fazer a parte pesada, e depois volta ao normal.
+
+Com isso dá para mexer na performance, sem mexer na estrutura do projeto antigo.
+
+## É feito assim na prática:
+
+Um exemplo bom é um script em Python que processa dados e tá engasgando. Nesses casos é legal criar um motor em Rust para ele.
+
+### 1. Primeiro deve criar um arquivo de configuração (Cargo.toml)
+
+Que é criado quando dá o comando para criar um novo projeto Rust no terminal.
+Mas não deve ser criado na pasta do projeto principal para não bagunçar. No caso, irá ser criado separado, aí vai estar avisando para o compilador que não queremos um executável (.exe), a gente quer uma biblioteca dinâmica (.dll ou .so).
+
+O arquivo vai ficar assim:
+
+```toml
+[lib]
+name = "motor_rust"
+crate-type = ["cdylib"] 
+# cdylib é o que faz o Rust virar uma biblioteca compatível com C
+2. O Código Rust (A parte que voa)
+No arquivo src/lib.rs, a gente vai escrever a função que o Python vai chamar.
+Tem dois detalhes importantes:
+
+#[no_mangle]: Pra o Rust não mudar o nome da função quando compilar.
+
+extern "C": Pra ele falar a língua que o Python entende.
+
+Rust
+use std::ffi::c_int;
+
+#[no_mangle]
+pub extern "C" fn processamento_pesado(n: c_int) -> c_int {
+    // Aqui dentro é onde a mágica acontece.
+    // O Python trava fazendo loop, o Rust come isso com farinha.
+    
+    let mut contador = 0;
+    
+    // Simulando um trabalho pesado que travaria o Python
+    for _ in 0..n {
+        contador += 1;
+    }
+    
+    return contador;
+}
+Aí você roda cargo build --release. Ele vai cuspir um arquivo .dll 
+(se tiver no Windows) ou .so (se tiver no Linux). Esse arquivo é o seu motor pronto.
+
+3. O Python (O Dono da Loja)
+Agora volta pro seu código Python antigo. 
+Você não precisa instalar nada complexo, o Python já vem com o
+ ctypes pra carregar esse tipo de arquivo.
+
+Python
+import ctypes
+
+# Carrega o arquivo que o Rust gerou
+# (Na vida real, coloca o caminho certinho de onde tá o arquivo)
+lib = ctypes.CDLL("./target/release/libmotor_rust.so")
+
+# Configura pra não dar erro de tipo (Python é meio solto, o Rust não)
+lib.processamento_pesado.argtypes = [ctypes.c_int]
+lib.processamento_pesado.restype = ctypes.c_int
+
+def rodar_sistema():
+    print("Começando o trabalho...")
+    
+    # AQUI OCORRE A TROCA
+    # O Python passa o bastão pro Rust, o Rust resolve na velocidade da luz
+    resultado = lib.processamento_pesado(10000000)
+    
+    print(f"Resultado: {resultado}")
+
+rodar_sistema()
+Isso é uma ótima estratégia para aperfeiçoar projetos.
+Mantendo o banco de dados, o login, as rotas, tudo no Python (que é bom pra isso). 
+E usando o Rust só onde precisava de força.
+
+Isso moderniza o projeto sem causar desastres.

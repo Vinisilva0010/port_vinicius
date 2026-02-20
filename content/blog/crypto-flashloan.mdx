@@ -1,0 +1,94 @@
+---
+title: "Flashloans: Dinheiro infinito por 1 bloco"
+date: "2025-04-23"
+category: "crypto"
+description: "Como pegar milhões emprestados sem garantia, lucrar com a diferença e devolver tudo na mesma transação."
+---
+
+No mundo real, se você quer emprestar 1 milhão de dólares, o banco pede sua casa de garantia.
+No DeFi, você pode pegar 10 milhões de dólares sem dar nada em troca, **contanto que você devolva no mesmo bloco**.
+
+Isso se chama **Flashloan**.
+É uma transação atômica:
+1. O protocolo te empresta o dinheiro.
+2. Você usa esse dinheiro (faz arbitragem, liquida alguém, manipula preço).
+3. Você devolve o dinheiro + uma taxa pequena (0.09%).
+
+Se no passo 3 você não tiver o dinheiro para devolver, a transação inteira **reverte**. É como se nunca tivesse acontecido. O risco é zero (você só perde a taxa de Gas da rede).
+
+## Onde usar?
+
+* **Arbitragem:** O ETH tá $3000 na Uniswap e $3050 na SushiSwap. Você pega 10 milhões emprestados, compra tudo na Uniswap, vende na SushiSwap, paga o empréstimo e fica com o lucro.
+* **Liquidação:** Alguém vai ser liquidado no Aave. Você pega o dinheiro emprestado, paga a dívida do cara, pega o colateral dele com desconto, vende e paga o empréstimo.
+
+## O Código (Solidity)
+
+Diferente dos outros exemplos, Flashloan não dá pra fazer só com script (Python/Rust). Você precisa de um **Contrato Inteligente** para receber o dinheiro.
+
+Aqui está o template base para um Flashloan na Aave V3:
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.10;
+
+import {FlashLoanSimpleReceiverBase} from "@aave/core-v3/contracts/flashloan/base/FlashLoanSimpleReceiverBase.sol";
+import {IPoolAddressesProvider} from "@aave/core-v3/contracts/interfaces/IPoolAddressesProvider.sol";
+import {IERC20} from "@aave/core-v3/contracts/dependencies/openzeppelin/contracts/IERC20.sol";
+
+contract MeuRoboFlashloan is FlashLoanSimpleReceiverBase {
+    address payable owner;
+
+    constructor(address _addressProvider)
+        FlashLoanSimpleReceiverBase(IPoolAddressesProvider(_addressProvider))
+    {
+        owner = payable(msg.sender);
+    }
+
+    // Essa função é chamada pelo Aave quando o dinheiro cai na conta
+    function executeOperation(
+        address asset,
+        uint256 amount,
+        uint256 premium,
+        address initiator,
+        bytes calldata params
+    ) external override returns (bool) {
+        
+        // 1. O DINHEIRO ESTÁ NA MÃO!
+        // Aqui você coloca a lógica: Comprar na Uniswap, Vender na Curve...
+        
+        // Lógica de arbitragem simulada:
+        // IERC20(asset).approve(address(uniswap), amount);
+        // uniswap.swap(...);
+        
+        // 2. CALCULAR O PAGAMENTO
+        uint256 amountOwed = amount + premium;
+        
+        // 3. APROVAR O PAGAMENTO DE VOLTA
+        IERC20(asset).approve(address(POOL), amountOwed);
+
+        return true;
+    }
+
+    // Função para pedir o empréstimo
+    function pedirEmprestimo(address _token, uint256 _amount) external {
+        address receiverAddress = address(this);
+        bytes memory params = "";
+        uint16 referralCode = 0;
+
+        POOL.flashLoanSimple(
+            receiverAddress,
+            _token,
+            _amount,
+            params,
+            referralCode
+        );
+    }
+}
+Como operar
+Você faz o deploy desse contrato.
+
+Chama a função pedirEmprestimo passando o token (USDC, ETH) e quanto quer (1 milhão).
+
+A mágica acontece dentro do executeOperation.
+
+É assim que os bots "snipers" fazem dinheiro. Eles não usam o capital deles, usam o capital dos outros.

@@ -1,0 +1,77 @@
+---
+title: "Multicall: 50 transações em 1"
+date: "2025-05-10"
+category: "crypto"
+description: "Como agrupar múltiplas leituras ou escritas em uma única chamada RPC para economizar tempo e Gas."
+---
+
+Se você está construindo um bot ou um dApp, a pior coisa que você pode fazer é "spammar" o nó RPC com requisições.
+
+Imagine que você precisa verificar o saldo de USDC, USDT e DAI de 10 carteiras diferentes. Se você fizer um loop `for` chamando `balanceOf`, vai demorar segundos por causa da latência de rede (RTT).
+
+A solução padrão da indústria é o **Multicall**.
+Existe um contrato inteligente implantado em todas as blockchains (Ethereum, Polygon, BSC, Arbitrum) que serve apenas para isso: receber uma lista de funções, executar todas num loop e devolver os resultados num array.
+
+## Vantagens
+
+1.  **Velocidade:** Transforma 50 requests de 100ms em 1 request de 120ms.
+2.  **Consistência:** Garante que todos os dados foram lidos no *mesmo bloco*. Se você fizer chamadas separadas, o saldo pode mudar entre a primeira e a última chamada.
+3.  **Atomicidade (Escrita):** Se for uma transação de escrita, o Multicall garante que ou *tudo* acontece, ou *nada* acontece.
+
+## Implementação em Rust
+
+Com a crate `ethers`, o Multicall já vem nativo. Não precisa configurar o endereço do contrato manualmente, a biblioteca já sabe onde ele está em cada rede.
+
+```rust
+use ethers::prelude::*;
+use std::sync::Arc;
+use std::convert::TryFrom;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let provider =
+     Provider::<Http>::try_from("[https://eth-mainnet.g.alchemy.com/v2/](https://eth-mainnet.g.alchemy.com/v2/)...")?;
+    let provider = Arc::new(provider);
+
+    // Endereços que queremos monitorar
+    let carteira_alvo = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045".parse::<Address>()?; // Vitalik
+    
+    // Tokens que queremos checar (USDT, USDC, DAI)
+    let tokens = vec![
+        "0xdAC17F958D2ee523a2206206994597C13D831ec7".parse::<Address>()?, 
+        "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48".parse::<Address>()?,
+        "0x6B175474E89094C44Da98b954EedeAC495271d0F".parse::<Address>()?,
+    ];
+
+    // Criamos o objeto Multicall
+    let mut multicall = Multicall::new(provider.clone(), None).await?;
+
+    // Adicionamos as chamadas na fila
+    // (Note que não estamos executando nada ainda, só empilhando)
+    for token_addr in tokens {
+        // ABI mínima para balanceOf
+        let contract = get_contract_instance(token_addr); 
+        let call = contract.method::<_, U256>("balanceOf", carteira_alvo)?;
+        multicall.add_call(call, false); // false = não permitir falha parcial
+    }
+
+    // DISPARAR!
+    // Aqui sai apenas 1 requisição HTTP para a internet.
+    let resultados: Vec<U256> = multicall.call().await?;
+
+    println!("Saldos retornados no mesmo bloco:");
+    for (i, saldo) in resultados.iter().enumerate() {
+        println!("Token {}: {}", i, saldo);
+    }
+
+    Ok(())
+}
+Multicall para Escrita (Write)
+Você também pode usar isso para enviar transações.
+Exemplo: Um bot que precisa fazer approve em 3 tokens diferentes para começar a operar.
+
+Em vez de enviar 3 transações, pagar 3 taxas base de Gas e esperar 3 blocos, você manda um Multicall. 
+Você paga a taxa base uma vez só e resolve tudo instantaneamente.
+
+Isso é essencial para Arbitragem Triangular,
+ onde você precisa trocar Token A -> B, B -> C e C -> A tudo de uma vez.

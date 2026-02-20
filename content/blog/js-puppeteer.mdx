@@ -1,0 +1,57 @@
+---
+title: "Puppeteer Stealth: O Bot Indetectável"
+date: "2026-02-21"
+category: "scripts"
+description: "Usando Node.js para controlar um Chrome que passa despercebido por sistemas anti-bot."
+---
+
+Fazer automação é fácil. Difícil é não ser bloqueado.
+Sites modernos detectam se você está usando um navegador automatizado checando propriedades ocultas (como WebGL, plugins, User-Agent).
+
+Se você quer criar um bot que loga no Gmail, posta no Twitter ou raspa dados da Cloudflare, você precisa do **Puppeteer Extra Stealth**.
+
+## O Setup
+
+No terminal, instale o combo:
+`npm install puppeteer puppeteer-extra puppeteer-extra-plugin-stealth`
+
+## O Código 
+
+```javascript
+// Não usa o 'puppeteer' puro, usa o 'puppeteer-extra'
+const puppeteer = require('puppeteer-extra');
+
+// Ativa a capa de invisibilidade
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+puppeteer.use(StealthPlugin());
+
+(async () => {
+  // Lança o browser
+  const browser = await puppeteer.launch({ 
+    headless: false, // Deixe false para ver acontecendo (e ajuda na evasão)
+    args: ['--no-sandbox', '--disable-setuid-sandbox'] 
+  });
+  
+  const page = await browser.newPage();
+
+  // Truque: Define um tamanho de tela aleatório e realista
+  await page.setViewport({ width: 1366, height: 768 });
+
+  console.log(" Indo para o site de teste de bot...");
+  
+  // testar num site que verifica robôs (sannysoft)
+  await page.goto('[https://bot.sannysoft.com/](https://bot.sannysoft.com/)');
+  
+  // Tira um print pra provar que passou tudo verde
+  await page.screenshot({ path: 'resultado_stealth.png', fullPage: true });
+  
+  console.log(" Print salvo! Verifique se está tudo verde.");
+  
+  // Exemplo de automação: Preencher login
+  // await page.type('#email', 'meu@email.com', { delay: 100 }); // delay humano
+  // await page.click('#login-button');
+
+  await browser.close();
+})();
+Onde usar?
+Eu uso isso quando o Python (Selenium) falha. O ecossistema JS para evasão de bot é muito mais maduro. Se você precisa de um bot que pareça 100% humano para criar contas ou interagir em redes sociais, é esse o caminho.

@@ -1,0 +1,46 @@
+---
+title: "Binário Único e Pequeno (Musl + Strip)"
+date: "2025-02-19"
+category: "rust"
+description: "Criando executáveis estáticos que rodam em qualquer Linux e ocupam pouco espaço."
+---
+
+Por padrão, o compilador do Rust gera arquivos grandes e que dependem da biblioteca C do sistema (`glibc`).
+Isso gera dois problemas:
+1. Se você rodar o binário num Linux com versão diferente da sua, ele não abre (erro de GLIBC).
+2. O arquivo fica cheio de informações de debug e símbolos, o que aumenta o tamanho e facilita a engenharia reversa.
+
+Para resolver isso, eu utilizo a compilação estática com **Musl** e removo os símbolos com **Strip**.
+
+## 1. Configurando o Cargo para reduzir tamanho
+
+No arquivo `Cargo.toml`, é necessário configurar o perfil de release para limpar o lixo.
+
+```toml
+[profile.release]
+strip = true  # Remove símbolos de debug (Deixa o binário mudo)
+opt-level = "z"  # Otimiza para tamanho (Size) e não velocidade máxima
+lto = true  # Link Time Optimization (Remove código morto entre bibliotecas)
+codegen-units = 1  # Compila mais devagar, mas gera código menor
+panic = "abort"  # Remove a lógica de "unwind" de erro (Economiza espaço)
+Só com isso, um binário de 10MB cai para uns 500KB.
+
+2. Compilação Estática (Musl)
+Para garantir que o programa rode em qualquer distribuição Linux (Ubuntu, Debian, Alpine, CentOS)
+ sem instalar nada, compilamos usando o target musl.
+  Ele coloca todas as bibliotecas necessárias dentro do executável.
+
+Primeiro, instale o target:
+
+Bash
+rustup target add x86_64-unknown-linux-musl
+Depois, compile apontando para ele:
+
+Bash
+cargo build --release --target x86_64-unknown-linux-musl
+Resultado
+O arquivo final gerado na pasta target será um executável único (standalone).
+Você pode copiar esse arquivo para um servidor zerado via SCP e executar direto. Não vai ter erro de
+ "lib not found".
+
+Isso é o padrão ideal para distribuir ferramentas de terminal, agentes de monitoramento e microservices.

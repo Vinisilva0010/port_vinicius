@@ -1,0 +1,71 @@
+---
+title: "Monitorando transações pendentes (Mempool)"
+date: "2025-04-13"
+category: "crypto"
+description: "Lendo os dados brutos da rede antes da confirmação do bloco para antecipar movimentos."
+---
+
+Para quem desenvolve bots de alta frequência (HFT) ou ferramentas de segurança, esperar a confirmação do bloco é inútil. Quando o bloco fecha, a oportunidade já passou.
+
+A vantagem competitiva está no **Mempool**. É a sala de espera onde as transações aguardam para ser mineradas. Monitorar isso permite ver compras de baleias, adições de liquidez ou tentativas de hack antes que elas aconteçam de fato.
+
+Utilizando Rust com a biblioteca `ethers-rs`, é possível abrir um WebSocket direto com o nó (Node) e filtrar isso em tempo real.
+
+## Conexão via WebSocket (WSS)
+
+HTTP não serve aqui porque é lento (Polling). É necessário manter uma conexão WSS (WebSocket Secure) aberta para receber os eventos via *stream*.
+
+No `Cargo.toml`:
+```toml
+[dependencies]
+ethers = { version = "2.0", features = ["ws", "rustls"] }
+tokio = { version = "1", features = ["full"] }
+O Código de Monitoramento
+O código abaixo se conecta a um nó (Ex: Infura, Alchemy ou nó próprio),
+ assina o canal de transações pendentes e imprime o hash assim que a transação chega na rede.
+
+Rust
+use ethers::prelude::*;
+use std::sync::Arc;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // WebSocket é obrigatório para performance
+    let url = "wss://[eth-mainnet.g.alchemy.com/v2/SUA_API_KEY](https://eth-mainnet.g.alchemy.com/v2/SUA_API_KEY)";
+    let provider = Provider::<Ws>::connect(url).await?;
+    let provider = Arc::new(provider);
+
+    // Cria a stream de monitoramento
+    let mut stream = provider.subscribe_pending_txs().await?;
+
+    println!("Escutando Mempool...");
+
+    while let Some(tx_hash) = stream.next().await {
+        // Assim que o hash chega, buscamos os detalhes completos
+        // Na prática, isso deve ser feito em threads separadas para não travar
+        if let Ok(Some(tx)) = provider.get_transaction(tx_hash).await {
+            
+            // Aqui filtramos o que interessa.
+            // Exemplo: Monitorar chamadas para a Uniswap Router
+            if let Some(to) = tx.to {
+                 println!("Tx Pendente detectada: {:?} | Para: {:?}", tx.hash, to);
+                 
+                 // O campo 'input' contém os dados da chamada (Method ID + Params)
+                 // É aqui que decodificamos se é uma compra, venda ou swap.
+                 println!("Input Data: {:?}", tx.input);
+            }
+        }
+    }
+
+    Ok(())
+}
+Decodificando o Input
+O campo input é o mais importante. Os primeiros 4 bytes (8 caracteres hexadecimais) 
+definem a função que está sendo chamada.
+
+0xa9059cbb: transfer(address,uint256)
+
+0x7ff36ab5: swapExactETHForTokens(...)
+
+Se o bot identificar 0xf305d719 (addLiquidityETH) em um contrato novo, 
+ele sabe que a negociação vai começar no próximo bloco e pode tentar comprar na mesma fração de segundo.

@@ -1,0 +1,108 @@
+---
+title: "O Quebrador de CAPTCHA: Passando pelo Porteiro"
+date: "2025-10-02"
+category: "scripts"
+description: "Como integrar seu bot com serviços de resolução de Captcha para ignorar o 'Não sou um robô'."
+---
+
+Você criou o bot perfeito, mas na hora de fazer o login, aparece o maldito quebra-cabeça de trânsito ou o "I'm not a robot". Game over? Não.
+
+Existem serviços (como 2Captcha, AntiCaptcha, DeathByCaptcha) onde tem humanos ou IAs resolvendo isso 24h por dia. Você manda o problema, eles mandam a resposta. Custa centavos (tipo $0.50 para resolver 1.000 captchas).
+
+Para um bot profissional, isso é custo operacional. É a "Chave Mestra".
+
+## Como funciona a Mágica
+
+O Captcha do Google (ReCaptcha V2) funciona assim:
+1. O site tem uma chave pública (`sitekey`).
+2. Quando você resolve, o Google te dá um `token` gigante.
+3. Esse token é enviado num campo escondido (`g-recaptcha-response`) quando você clica em Enviar.
+
+O nosso script não clica nas fotos. Ele pega a `sitekey`, manda pra API resolver, pega o `token` pronto e injeta direto no HTML do site. O site acha que você resolveu.
+
+## O Código
+
+gosto de usar a biblioteca `requests` pura para entender a lógica (sem depender de libs prontas que quebram).
+*Você vai precisar de uma chave de API (crie conta no 2captcha.com ou similar para testar).*
+
+Salve como `quebrador.py`.
+
+```python
+import requests
+import time
+
+# CONFIGURAÇÕES
+API_KEY = "SUA_CHAVE_DO_2CAPTCHA_AQUI"
+SITE_URL = "[https://www.site-com-protecao.com/login](https://www.site-com-protecao.com/login)"
+# Descubra a sitekey inspecionando o HTML do site (procure por data-sitekey)
+SITE_KEY = "6Le-wvkSAAAAAPBCRTvwAFadAGwDTTTWYzGsUgAb" 
+
+def resolver_captcha():
+    print(" Enviando Captcha para o cérebro...")
+
+    # 1. Envia o pedido para a API
+    url_pedido = f"[http://2captcha.com/in.php?key=](http://2captcha.com/in.php?key=){API_KEY}&method=userrecaptcha&googlekey={SITE_KEY}&pageurl={SITE_URL}&json=1"
+    resposta = requests.get(url_pedido).json()
+
+    if resposta['status'] != 1:
+        print("Erro ao enviar:", resposta)
+        return None
+
+    id_tarefa = resposta['request']
+    print(f"Tarefa criada: {id_tarefa}. Aguardando resolução...")
+
+    # 2. Fica perguntando "Já tá pronto?" a cada 5 segundos
+    for _ in range(20): # Tenta por 100 segundos
+        time.sleep(5)
+        
+        url_resultado = f"[http://2captcha.com/res.php?key=](http://2captcha.com/res.php?key=){API_KEY}&action=get&id={id_tarefa}&json=1"
+        resultado = requests.get(url_resultado).json()
+
+        if resultado['status'] == 1:
+            token_magico = resultado['request']
+            print(" CAPTCHA QUEBRADO! Token recebido.")
+            return token_magico
+        
+        if result['request'] != "CAPCHA_NOT_READY":
+            print("Erro na resolução:", resultado)
+            break
+            
+        print("Ainda resolvendo...")
+
+    return None
+
+# --- COMO USAR ISSO NO SEU BOT (Ex: Selenium/Playwright) ---
+
+# Imagine que 'driver' é o seu navegador Selenium
+# driver = webdriver.Chrome()
+# driver.get(SITE_URL)
+
+token = resolver_captcha()
+
+if token:
+    print(" Injetando a vacina no site...")
+    
+    # JavaScript para injetar o token no campo escondido do site
+    # Isso faz o site achar que você clicou nas fotos de semáforo
+    script_injecao = f"""
+    document.getElementById('g-recaptcha-response').innerHTML = '{token}';
+    """
+    
+    # Se estiver usando Selenium:
+    # driver.execute_script(script_injecao)
+    
+    # Se estiver usando Playwright:
+    # await page.evaluate(script_injecao)
+    
+    # Depois é só clicar no botão de Login
+    print(" Pode clicar no Login agora!")
+else:
+    print(" Falha ao resolver.")
+Onde usar isso?
+Ticketmaster/Ingressos: Eles usam filas com Captcha. Esse script resolve enquanto você dorme.
+
+Web Scraping Massivo: Se o Google bloquear seu IP e pedir captcha, o script resolve e continua raspando.
+
+Criação de Contas: Bots que criam contas de e-mail ou redes sociais em massa usam isso para passar pelo registro.
+
+É o script que transforma um "brinquedo" numa ferramenta de força industrial.

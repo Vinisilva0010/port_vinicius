@@ -17,25 +17,84 @@ const handFont = Patrick_Hand({ weight: "400", subsets: ["latin"] });
 const webProjects = [
   {
     id: 1,
-    title: "Excel Zanvexis",
-    desc: "Planilha inteligente com suporte a fórmulas e IA.",
+    title: "Zanvexis Smart Sheets",
+    desc: "Planilha web de ultra performance com IA nativa e Canvas API.",
+    details: "Desenvolvida do zero para renderizar 1 milhão de células sem travar o navegador. Integra inteligência artificial para gerar fórmulas complexas e analisar dados instantaneamente.",
     github: "https://github.com/Vinisilva0010",
-    image: "/web/project-excel.png",
+    image: "/web/onze.png",
   },
   {
     id: 2,
-    title: "Fluency Master",
-    desc: "App de inglês com avatares animados e ElevenLabs.",
+    title: "Fluency Master AI",
+    desc: "Plataforma de idiomas com tutores 3D e processamento de voz.",
+    details: "Usa WebRTC e ElevenLabs para latência < 300ms. O backend processa a pronúncia em tempo real e o avatar 3D responde com lip-sync perfeito. A evolução das escolas de inglês.",
     github: "https://github.com/Vinisilva0010",
-    image: "/web/project-fluency.png",
+    image: "/web/doze.png",
   },
   {
     id: 3,
-    title: "3D Marketing Persona",
-    desc: "Sites com personalidades únicas e interações 3D imersivas.",
+    title: "Immersive 3D Portfolios",
+    desc: "Mundos interativos com WebGL e Three.js para marcas premium.",
+    details: "Chega de sites estáticos. Criamos experiências 3D rodando direto no navegador a 60 FPS, usando shaders customizados e modelos otimizados para converter visitantes em clientes.",
     github: "https://github.com/Vinisilva0010",
-    image: "/web/project-3d.png",
+    image: "/web/treze.png",
   },
+  {
+    id: 4,
+    title: "Auto-Manager Webmotors",
+    desc: "SaaS avançado para revendedoras dominarem o mercado automotivo.",
+    details: "Automatiza postagens, gerencia leads e precifica carros usando scraping inteligente da Tabela FIPE. Um dashboard Next.js responsivo que substitui o trabalho de 3 funcionários.",
+    github: "https://github.com/Vinisilva0010",
+    image: "/web/quatorze.png",
+  },
+  {
+    id: 5,
+    title: "Aegis Command Center",
+    desc: "Dashboard tático 3D para monitoramento de ciberataques.",
+    details: "O front-end do nosso firewall vencedor do Hackathon do Google. Renderiza milhares de logs de segurança em um mapa de calor interativo usando WebSockets sem engasgar a GPU.",
+    github: "https://github.com/Vinisilva0010",
+    image: "/web/quinze.png",
+  },
+  {
+    id: 6,
+    title: "Barber CRM Pro",
+    desc: "Gestão completa de barbearias com motor de agendamento PWA.",
+    details: "Sincroniza agendas offline-first. Inclui painel financeiro detalhado, disparos de WhatsApp automáticos para clientes e analytics de retenção de público.",
+    github: "https://github.com/Vinisilva0010",
+    image: "/web/desseseis.png",
+  },
+  {
+    id: 7,
+    title: "Space Shooter WebGL",
+    desc: "Motor de física customizado para jogos rodando no navegador.",
+    details: "Jogo top-down frenético. Focado em otimização extrema de JavaScript (Garbage Collection evasion) para provar que a web moderna pode rodar jogos pesados perfeitamente.",
+    github: "https://github.com/Vinisilva0010",
+    image: "/web/project-game.png",
+  },
+  {
+    id: 8,
+    title: "Civil Blueprint 3D",
+    desc: "Apresentação arquitetônica interativa para construtoras.",
+    details: "Permite que clientes naveguem por plantas baixas e renderizações 3D das obras direto no celular. Substitui PDFs chatos por uma ferramenta de vendas imersiva.",
+    github: "https://github.com/Vinisilva0010",
+    image: "/web/project-civil.png",
+  },
+  {
+    id: 9,
+    title: "Zanvexis Checkout",
+    desc: "Gateway de pagamento on-chain com experiência de Web2.",
+    details: "Frontend em React que consome nossa API em Rust. Pagamentos em cripto com 2 cliques, QR Code dinâmico e confirmação de bloco via socket na tela do usuário.",
+    github: "https://github.com/Vinisilva0010",
+    image: "/web/project-checkout.png",
+  },
+  {
+    id: 10,
+    title: "SliceSync Delivery",
+    desc: "Ecossistema de PDV e App de delivery com rastreamento real-time.",
+    details: "Um sistema próprio onde o cliente acompanha o motoboy no mapa com animações fluidas, e a cozinha recebe os pedidos sincronizados instantaneamente via Edge Functions.",
+    github: "https://github.com/Vinisilva0010",
+    image: "/web/project-pizza.png",
+  }
 ];
 
 export function WebProjects() {
@@ -282,11 +341,8 @@ export function WebProjects() {
                         >
                           Notas:
                         </h4>
-                        <p
-                          className={`text-gray-800 text-base sm:text-lg leading-[1.5rem] ${handFont.className}`}
-                        >
-                          Este projeto foi desenvolvido com foco em alta performance e UX. Na
-                          Zanvexis, priorizamos o resultado final e a experiência do usuário.
+                        <p className={`text-gray-800 text-base sm:text-lg leading-[1.5rem] ${handFont.className}`}>
+                          {webProjects[currIndex].details}
                         </p>
                         <button
                           onClick={(e) => {
