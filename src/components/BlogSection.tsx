@@ -22,17 +22,17 @@ const blogTopics = [
   {
     title: "INTELIGÊNCIA ARTIFICIAL",
     icon: <BrainCircuit size={40} className="text-red-500" />,
-    desc: "O fim dos devs ou a nova era? Como a IA está reescrevendo o código.",
+    desc: "",
   },
   {
     title: "ECOSSISTEMA RUST",
     icon: <Cog size={40} className="text-orange-500" />,
-    desc: "Performance e segurança: Por que Rust é o futuro do backend robusto.",
+    
   },
   {
     title: "CRIPTO & WEB3",
     icon: <Bitcoin size={40} className="text-yellow-500" />,
-    desc: "Além do hype: Smart contracts e a descentralização real.",
+   
   },
 ];
 
@@ -161,10 +161,10 @@ export function BlogSection() {
             className="mb-8 sm:mb-12 md:mb-16"
         >
             <h2 className={`text-4xl sm:text-5xl md:text-6xl lg:text-8xl text-red-600 drop-shadow-[0_3px_0_rgba(0,0,0,1)] sm:drop-shadow-[0_5px_0_rgba(0,0,0,1)] leading-tight ${horrorFont.className}`}>
-                O LADO SOMBRIO DA TECH
+                Algumas coisas uteis.
             </h2>
             <p className={`text-gray-400 mt-3 sm:mt-4 text-sm sm:text-lg md:text-xl px-4 ${markerFont.className}`}>
-                // Blog Zanvexis: Segredos que a documentação oficial esconde.
+                // Meu blog com varias dicas rust e muito scripts poderoços em python e javascript
             </p>
         </motion.div>
 
@@ -245,7 +245,7 @@ export function BlogSection() {
         className={`inline-flex px-6 sm:px-10 md:px-12 py-3 sm:py-4 md:py-5 bg-red-700 hover:bg-red-800 active:bg-red-900 text-white text-base sm:text-xl md:text-2xl border-3 sm:border-4 border-black shadow-[4px_4px_0px_#000] sm:shadow-[6px_6px_0px_#000] md:shadow-[8px_8px_0px_#000] rounded-lg sm:rounded-xl items-center gap-2 sm:gap-3 mx-auto w-fit cursor-pointer ${markerFont.className}`}
     >
         <BookOpen size={20} className="sm:w-6 sm:h-6 md:w-7 md:h-7" />
-        <span className="hidden sm:inline">LER O BLOG (SE TIVER CORAGEM)</span>
+        <span className="hidden sm:inline">LEIA MEU BLOG </span>
         <span className="sm:hidden">LER O BLOG</span>
     </MotionLink>
 
