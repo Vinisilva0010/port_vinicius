@@ -16,8 +16,16 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: "Vinicius | Desenvolvedor Fullstack",
-  description: "Portfólio criativo de desenvolvimento web e software.",
+  description: 'Fundador da Zanvexis. Especialista em Web3, Rust e Alta Performance.',
+
+verification: {
+    google: 'QuRgiL70MlGbEKhROyOrhw9BfSM3evogJSsdU2a5G5s',
+  },
+
 };
+
+
+
 
 export default function RootLayout({
   children,
