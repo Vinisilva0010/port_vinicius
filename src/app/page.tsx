@@ -5,6 +5,7 @@ import { AnimatePresence } from "framer-motion";
 
 import { Hero } from "@/src/components/sections/Hero";
 import { About } from "@/src/components/About";
+import VideoPanel from "@/src/components/videopanel";
 import { Projetos } from "@/src/components/projetos";
 import { TechTicker } from "@/src/components/TechTicker";
 import { CloudTicker } from "@/src/components/CloudTicker";
@@ -13,6 +14,7 @@ import { FullStackTicker } from "@/src/components/FullStackTicker";
 import { BlogSection } from "@/src/components/BlogSection";
 import { FooterSection } from "@/src/components/FooterSection";
 import { LoadingScreen } from "@/src/components/LoadingScreen";
+
 
 export default function Home() {
   // 1. DEFININDO O ESTADO QUE FALTAVA
@@ -50,6 +52,14 @@ export default function Home() {
           </div>
           
           <About />
+
+          <div className="relative z-50 mt-12 mb-12">
+             <TechTicker />
+          </div>
+
+          <div className="relative z-50 mt-12 mb-12">
+             <VideoPanel />
+          </div>
           
           <div className="relative z-50 mt-12 mb-12">
              <TechTicker />
